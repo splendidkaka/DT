@@ -4,7 +4,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 export const configAutoImports = (): PluginOption => {
     return AutoImport({
-        dts: 'types/auto-imports.d.ts',
+        dts: './src/types/auto-imports.d.ts',
         imports: [
             'vue',
             'vue-router',

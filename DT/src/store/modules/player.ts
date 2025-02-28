@@ -1,28 +1,34 @@
-// stores/modules/player.ts
+// stores/player.ts
 import { defineStore } from 'pinia'
 import type { Song } from '@/types/music'
 
 interface PlayerState {
     currentSong: Song | null
-    volume: number
     isPlaying: boolean
+    volume: number
+    progress: number
+    playlist: Song[]
 }
 
 export const usePlayerStore = defineStore('player', {
     state: (): PlayerState => ({
         currentSong: null,
-        volume: 0.8,
-        isPlaying: false
+        isPlaying: false,
+        volume: 80,
+        progress: 0,
+        playlist: []
     }),
     actions: {
         async playSong(song: Song) {
-            // 播放逻辑...
+            this.currentSong = song
+            this.isPlaying = true
+            // 这里可以添加音频播放逻辑
         },
         togglePlay() {
             this.isPlaying = !this.isPlaying
+        },
+        nextSong() {
+            // 实现切歌逻辑
         }
-    },
-    getters: {
-        formattedVolume: (state) => `${Math.round(state.volume * 100)}%`
     }
 })

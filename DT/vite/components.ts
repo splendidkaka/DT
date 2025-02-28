@@ -5,7 +5,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 export const configComponents = (): PluginOption => {
     return Components({
-        dts: 'types/components.d.ts',
+        dts: './src/types/components.d.ts',
         resolvers: [
             ElementPlusResolver({
                 importStyle: 'sass'
