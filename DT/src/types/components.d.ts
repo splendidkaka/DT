@@ -8,12 +8,17 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    HelloWorld: typeof import('./../components/HelloWorld.vue')['default']
+    ElContainer: typeof import('element-plus/es')['ElContainer']
+    ElFooter: typeof import('element-plus/es')['ElFooter']
+    ElHeader: typeof import('element-plus/es')['ElHeader']
+    ElMain: typeof import('element-plus/es')['ElMain']
+    LyricsPanel: typeof import('./../components/LyricsPanel.vue')['default']
     NavBar: typeof import('./../components/NavBar.vue')['default']
     PlayerControls: typeof import('./../components/PlayerControls.vue')['default']
     PlaylistPanel: typeof import('./../components/PlaylistPanel.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SongList: typeof import('./../components/SongList.vue')['default']
+    SvgIcon: typeof import('./../components/SvgIcon.vue')['default']
   }
 }

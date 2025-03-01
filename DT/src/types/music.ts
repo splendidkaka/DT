@@ -28,6 +28,7 @@ export interface Song {
     audioUrl: string;     // 音频文件URL
     albumId: string;      // 所属专辑ID
     artists: string[];    // 参与艺术家ID数组（支持合作歌曲）
+    lyrics: string;       // 歌词文本
 }
 
 // 播放列表类型
@@ -37,4 +38,10 @@ export interface Playlist {
     description?: string;
     cover: string;       // 播放列表封面
     songs: string[];     // 歌曲ID数组
+}
+// 歌词行类型
+export interface LyricLine {
+    time: number // 时间戳（秒）
+    text: string // 歌词内容
+    translation?: string // 可选翻译文本
 }

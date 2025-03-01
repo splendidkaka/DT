@@ -1,10 +1,10 @@
 <!-- components/PlayerControls.vue -->
 <template>
-    <div class="player-controls" v-if="currentSong">
+    <div class="player-controls" :class="{ 'mobile-layout': isMobile }" v-if="currentSong" >
         <div class="player-content">
             <!-- 左侧：歌曲信息 -->
             <div class="song-info">
-                <img :src="albumCover" class="album-cover" />
+                <img :src="albumCover" class="album-cover" @click="handleClick" />
                 <div class="text-info">
                     <div class="title">{{ currentSong.title }}</div>
                     <div class="artist">{{ artistNames }}</div>
@@ -36,35 +36,36 @@
             </div>
 
             <!-- 右侧：进度条和时间 -->
-            <div class="progress-container">
+            <div class="progress-container" v-if="!isMobile">
                 <div class="time">{{ formattedCurrentTime }}</div>
                 <input type="range" class="progress-bar" :min="0" :max="duration" :value="progress"
                     @input="handleSeek" />
                 <div class="time">{{ formattedDuration }}</div>
                 <button class="playlist-toggle" @click="togglePlaylist">
-            <svg viewBox="0 0 24 24">
-                <path d="M4 10h12v2H4zm0-4h12v2H4zm0 8h8v2H4zm10 0v6l5-3z" />
-            </svg>
-        </button>
+                    <SvgIcon icon="mdi:playlist-music" :size="24" class="icon" />
+                </button>
             </div>
         </div>
-       
+
     </div>
+
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useMusicStore } from '@/store/modules/music'
 import { useSidebarStore } from '@/store/modules/sidebar'
+import { useDevice } from '@/hooks/useDevice'
 
 const sidebarStore = useSidebarStore()
+
 
 const togglePlaylist = () => {
     sidebarStore.togglePlaylistVisibility()
 }
 const musicStore = useMusicStore()
 const audioElement = ref<HTMLAudioElement | null>(null)
-
+const { isMobile } = useDevice()
 // 计算属性
 const currentSong = computed(() => musicStore.currentSong)
 const isPlaying = computed(() => musicStore.currentPlayer.isPlaying)
@@ -148,6 +149,12 @@ const handleSeek = (e: Event) => {
     }
 }
 
+const handleClick = (e: MouseEvent) => {
+    console.log('click:', e)
+    e.stopPropagation()
+    musicStore.toggleLyricsPanel(true)
+}
+
 // 工具函数
 const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return '00:00'
@@ -162,7 +169,7 @@ onUnmounted(cleanupAudio)
 
 <style lang="scss" scoped>
 .player-controls {
-    // position: fixed;
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
@@ -170,25 +177,65 @@ onUnmounted(cleanupAudio)
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
     padding: 1rem 2rem;
     z-index: 100;
-    position: relative;
+    min-height: 80px;
+    width: 100vw;
+    overflow-x: hidden;
 
-    .playlist-toggle {
-        position: absolute;
-        right: 20px;
-        background: none;
-        border: none;
-        padding: 8px;
-        cursor: pointer;
-        transition: opacity 0.2s;
+    &.mobile-layout {
+        padding: 0.5rem;
+        display: flex;
 
-        svg {
-            width: 24px;
-            height: 24px;
-            fill: #666;
+        .player-content {
+            // flex-direction: column;
+            // display: flex;
+            flex-direction: row;
+            // justify-content: space-between;
+            // gap: 1rem;
+
         }
 
+        .controls {
+            // order: -1;
+            justify-content: center;
+        }
+
+        .progress-container {
+            width: 100%;
+            min-width: unset;
+        }
+    }
+
+
+    /* 播放列表按钮样式 */
+    .playlist-toggle {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+
         &:hover {
-            opacity: 0.8;
+            transform: scale(1.1);
+            background: $accent-color;
+
+            .icon {
+                color: white;
+            }
+        }
+
+        .icon {
+            color: $accent-color;
+            transition: color 0.3s ease;
         }
     }
 
@@ -204,13 +251,14 @@ onUnmounted(cleanupAudio)
         display: flex;
         align-items: center;
         gap: 1rem;
-        min-width: 250px;
+        // min-width: 250px;
 
         .album-cover {
             width: 50px;
             height: 50px;
             border-radius: 50%;
             object-fit: cover;
+            cursor: pointer;
             animation: rotate 5s linear infinite;
         }
 

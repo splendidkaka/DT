@@ -14,9 +14,17 @@ const EightDimensionCover = new URL('@/assets/covers/8.jpg', import.meta.url).hr
 const YepCover = new URL('@/assets/covers/yhm.jpg', import.meta.url).href
 const QiLiXiangCover = new URL('@/assets/covers/7.jpg', import.meta.url).href
 
-// const getAudioUrl = (filename: string) => new URL(`@/public/audio/${filename}`, import.meta.url).href
+// 将音频文件放在 public/audio 目录
+const preAudio = (filename: string): string => `/audio/${filename}`
+// 将歌词文件放在 public/audio 目录
+const preLrc = (filename: string): string => `/LRC/${filename}`
+// const preAudio = (filename: string): string => `http://localhost:5173/src/public/audio/${filename}`
+// const preAudio = (filename: string): string => new URL(`@/assets/audio/${filename}`, import.meta.url).href
 
-const preAudio = (filename: string): string => `http://localhost:5173/src/public/audio/${filename}`
+// 从项目根目录开始计算路径
+// const preAudio = (filename: string): string => {
+//     return new URL(`../src/assets/audio/${filename}`, import.meta.url).href
+//   }
 
 const jaySongs = [
     // 2000年《Jay》
@@ -26,7 +34,8 @@ const jaySongs = [
         duration: 251,
         audioUrl: preAudio('jay/1.mp3'),
         albumId: 'jay-1',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('jay/1.lrc')
     },
     {
         id: 'jay1-2',
@@ -34,7 +43,8 @@ const jaySongs = [
         duration: 258,
         audioUrl: preAudio('jay/2.mp3'),
         albumId: 'jay-1',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('jay/2.lrc')
     },
     {
         id: 'jay1-3',
@@ -42,7 +52,8 @@ const jaySongs = [
         duration: 295,
         audioUrl: preAudio('jay/3.mp3'),
         albumId: 'jay-1',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('jay/3.lrc')
     },
     {
         id: 'jay1-4',
@@ -50,7 +61,8 @@ const jaySongs = [
         duration: 235,
         audioUrl: preAudio('jay/4.mp3'),
         albumId: 'jay-1',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('jay/4.lrc')
     },
 
     // 2001年《范特西》
@@ -60,7 +72,8 @@ const jaySongs = [
         duration: 227,
         audioUrl: preAudio('fantasy/1.mp3'),
         albumId: 'jay-2',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('fantasy')
     },
     {
         id: 'jay2-2',
@@ -68,7 +81,8 @@ const jaySongs = [
         duration: 195,
         audioUrl: preAudio('fantasy/2.mp3'),
         albumId: 'jay-2',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('fantasy')
     },
     {
         id: 'jay2-3',
@@ -76,7 +90,8 @@ const jaySongs = [
         duration: 268,
         audioUrl: preAudio('fantasy/3.mp3'),
         albumId: 'jay-2',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('fantasy')
     },
     {
         id: 'jay2-4',
@@ -84,7 +99,8 @@ const jaySongs = [
         duration: 315,
         audioUrl: preAudio('fantasy/4.mp3'),
         albumId: 'jay-2',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('fantasy')
     },
 
     // 2002年《八度空间》
@@ -94,7 +110,8 @@ const jaySongs = [
         duration: 242,
         audioUrl: preAudio('8dimension/1.mp3'),
         albumId: 'jay-3',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('8dimension/1.lrc')
     },
     {
         id: 'jay3-2',
@@ -102,7 +119,8 @@ const jaySongs = [
         duration: 326,
         audioUrl: preAudio('8dimension/2.mp3'),
         albumId: 'jay-3',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('8dimension/2.lrc')
     },
     {
         id: 'jay3-3',
@@ -110,7 +128,8 @@ const jaySongs = [
         duration: 274,
         audioUrl: preAudio('8dimension/3.mp3'),
         albumId: 'jay-3',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('8dimension/3.lrc')
     },
 
     // 2003年《叶惠美》
@@ -120,7 +139,8 @@ const jaySongs = [
         duration: 342,
         audioUrl: preAudio('yep/1.mp3'),
         albumId: 'jay-4',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('yep/1.lrc')
     },
     {
         id: 'jay4-2',
@@ -128,7 +148,8 @@ const jaySongs = [
         duration: 269,
         audioUrl: preAudio('yep/2.mp3'),
         albumId: 'jay-4',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('yep/2.lrc')
     },
     {
         id: 'jay4-3',
@@ -136,7 +157,8 @@ const jaySongs = [
         duration: 311,
         audioUrl: preAudio('yep/3.mp3'),
         albumId: 'jay-4',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('yep/3.lrc')
     },
 
     // 2004年《七里香》
@@ -146,7 +168,8 @@ const jaySongs = [
         duration: 295,
         audioUrl: preAudio('qi_li_xiang/1.mp3'),
         albumId: 'jay-5',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('qi_li_xiang/1.lrc')
     },
     {
         id: 'jay5-2',
@@ -154,7 +177,8 @@ const jaySongs = [
         duration: 244,
         audioUrl: preAudio('qi_li_xiang/2.mp3'),
         albumId: 'jay-5',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('qi_li_xiang/2.lrc')
     },
     {
         id: 'jay5-3',
@@ -162,7 +186,8 @@ const jaySongs = [
         duration: 238,
         audioUrl: preAudio('qi_li_xiang/3.mp3'),
         albumId: 'jay-5',
-        artists: ['jay']
+        artists: ['jay'],
+        lyrics: preLrc('qi_li_xiang/3.lrc')
     }
 ]
 const jayAlbums = [
@@ -312,6 +337,7 @@ export const mockSongs: Song[] = [
         audioUrl: preAudio('1.mp3'),
         albumId: 'album-1',
         artists: ['dt'],
+        lyrics: preLrc('1.lrc')
     },
     {
         id: 'song-2',
@@ -319,7 +345,8 @@ export const mockSongs: Song[] = [
         duration: 280,
         audioUrl: preAudio('2.mp3'),
         albumId: 'album-1',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('1.lrc')
     },
     {
         id: 'song-3',
@@ -327,7 +354,8 @@ export const mockSongs: Song[] = [
         duration: 283,
         audioUrl: '/audio/david-tao/blue-moon.mp3',
         albumId: 'album-1',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('david-tao/blue-moon.lrc')
     },
     {
         id: 'song-4',
@@ -335,7 +363,8 @@ export const mockSongs: Song[] = [
         duration: 235,
         audioUrl: '/audio/david-tao/bastard.mp3',
         albumId: 'album-1',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('david-tao/bastard.lrc')
     },
     {
         id: 'song-5',
@@ -343,7 +372,8 @@ export const mockSongs: Song[] = [
         duration: 200,
         audioUrl: '/audio/david-tao/wang-chun-feng.mp3',
         albumId: 'album-1',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('david-tao/wang-chun-feng.lrc')
     },
     {
         id: 'song-6',
@@ -351,7 +381,8 @@ export const mockSongs: Song[] = [
         duration: 275,
         audioUrl: '/audio/david-tao/heart-flutter.mp3',
         albumId: 'album-1',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('david-tao/heart-flutter.lrc')
     },
     {
         id: 'song-7',
@@ -359,7 +390,8 @@ export const mockSongs: Song[] = [
         duration: 245,
         audioUrl: '/audio/david-tao/right-and-wrong.mp3',
         albumId: 'album-1',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('david-tao/right-and-wrong.lrc')
     },
     {
         id: 'song-8',
@@ -367,7 +399,8 @@ export const mockSongs: Song[] = [
         duration: 294,
         audioUrl: '/audio/david-tao/quicksand.mp3',
         albumId: 'album-1',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('david-tao/quicksand.lrc')
     },
     {
         id: 'song-9',
@@ -376,6 +409,7 @@ export const mockSongs: Song[] = [
         audioUrl: '/audio/david-tao/take6minus3.mp3',
         albumId: 'album-1',
         artists: ['dt'],
+        lyrics: preLrc('david-tao/take6minus3.lrc')
     },
     {
         id: 'song-10',
@@ -383,7 +417,8 @@ export const mockSongs: Song[] = [
         duration: 260,
         audioUrl: '/audio/david-tao/seventeen.mp3',
         albumId: 'album-1',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('david-tao/seventeen.lrc')
     },
     // 其他专辑歌曲示例...// 
     // ======================
@@ -395,7 +430,8 @@ export const mockSongs: Song[] = [
         duration: 302,
         audioUrl: '/audio/imok/regular-friend.mp3',
         albumId: 'album-2',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('imok/doxology.lrc')
     },
     {
         id: 'song-12',
@@ -403,7 +439,8 @@ export const mockSongs: Song[] = [
         duration: 254,
         audioUrl: '/audio/imok/find-myself.mp3',
         albumId: 'album-2',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('imok/find-myself.lrc')
     },
     {
         id: 'song-13',
@@ -411,7 +448,8 @@ export const mockSongs: Song[] = [
         duration: 284,
         audioUrl: '/audio/imok/small-town-girl.mp3',
         albumId: 'album-2',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('imok/small-town')
     },
     {
         id: 'song-14',
@@ -419,7 +457,8 @@ export const mockSongs: Song[] = [
         duration: 234,
         audioUrl: '/audio/imok/tuberose.mp3',
         albumId: 'album-2',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('imok/tuberose.lrc')
     },
     {
         id: 'song-15',
@@ -427,7 +466,8 @@ export const mockSongs: Song[] = [
         duration: 302,
         audioUrl: '/audio/imok/regular-friend.mp3',
         albumId: 'album-2',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('imok/regular')
     },
     {
         id: 'song-16',
@@ -435,7 +475,8 @@ export const mockSongs: Song[] = [
         duration: 302,
         audioUrl: '/audio/imok/regular-friend.mp3',
         albumId: 'album-2',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('imok/im-ok.lrc')
     },
     {
         id: 'song-17',
@@ -443,7 +484,8 @@ export const mockSongs: Song[] = [
         duration: 302,
         audioUrl: '/audio/imok/regular-friend.mp3',
         albumId: 'album-2',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('imok/leave-now.lrc')
     },
     {
         id: 'song-18',
@@ -451,14 +493,16 @@ export const mockSongs: Song[] = [
         duration: 245,
         audioUrl: '/audio/imok/leave-now.mp3',
         albumId: 'album-2',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('imok/leave-now.lrc')
     }, {
         id: 'song-19',
         title: '马戏团',
         duration: 245,
         audioUrl: '/audio/imok/leave-now.mp3',
         albumId: 'album-2',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('imok/circus.mp3')
     },
     {
         id: 'song-20',
@@ -466,7 +510,8 @@ export const mockSongs: Song[] = [
         duration: 245,
         audioUrl: '/audio/imok/leave-now.mp3',
         albumId: 'album-2',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('imok/leave-now.lrc')
     },
     // ======================
     // 黑色柳丁 (2002) 专辑
@@ -477,7 +522,8 @@ export const mockSongs: Song[] = [
         duration: 265,
         audioUrl: '/audio/black-tangerine/black-tangerine.mp3',
         albumId: 'album-3',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('black-tangerine/black-tangerine.lrc')
     },
     {
         id: 'song-22',
@@ -485,7 +531,8 @@ export const mockSongs: Song[] = [
         duration: 127,
         audioUrl: '/audio/black-tangerine/nightly-news.mp3',
         albumId: 'album-3',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('black-tangerine/nightly-news.lrc')
     },
     {
         id: 'song-23',
@@ -493,7 +540,8 @@ export const mockSongs: Song[] = [
         duration: 314,
         audioUrl: '/audio/black-tangerine/dear-god.mp3',
         albumId: 'album-3',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('black-tangerine/dear-god.lrc')
     },
     {
         id: 'song-24',
@@ -501,7 +549,8 @@ export const mockSongs: Song[] = [
         duration: 245,
         audioUrl: '/audio/black-tangerine/angel.mp3',
         albumId: 'album-3',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('black-tangerine/angel.lrc')
     },
     {
         id: 'song-25',
@@ -509,7 +558,8 @@ export const mockSongs: Song[] = [
         duration: 245,
         audioUrl: '/audio/black-tangerine/angel.mp3',
         albumId: 'album-3',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('black-tangerine/melody.lrc')
     },
     {
         id: 'song-26',
@@ -517,7 +567,8 @@ export const mockSongs: Song[] = [
         duration: 284,
         audioUrl: '/audio/black-tangerine/red-chamber.mp3',
         albumId: 'album-3',
-        artists: ['dt']
+        artists: ['dt'],
+        lyrics: preLrc('black-tangerine/red-chamber.lrc')
     },
     ...jaySongs
 ]

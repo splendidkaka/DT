@@ -1,64 +1,113 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import SongList from '../components/SongList.vue'
 import { usePlaylistStore } from '@/store/modules/playlist'
 import { useMusicStore } from '@/store/modules/music'
+import { useAnimationStore } from '@/store/modules/animation'
+import { useThemeStore } from '@/store/modules/theme'
 import type { Playlist, Song, Album, Artist } from '@/types/music'
 
+
+//store 初始化
 const playlistStore = usePlaylistStore()
 const musicStore = useMusicStore()
+const animationStore = useAnimationStore()
+const themeStore = useThemeStore()
+
+// 响应式状态
 const featuredPlaylists = ref<Playlist[]>([])
-// const albumLists = ref<Album[]>([])
-const hotSongs = ref<Song[]>([])
-const currentPlaylistName = ref<string>('') // 当前选中专辑
-const currentPlaylistId = ref<string>('') //当前选中专辑ID
+const currentPlaylistName = ref<string>('')
+const currentPlaylistId = ref<string>('')
 const scrollContainer = ref<HTMLElement | null>(null)
 const showLeftArrow = ref(false)
 const showRightArrow = ref(true)
-// const { selectedArtistId } = storeToRefs(musicStore) 
+const activeAlbumIndex = ref(0)
+const transitionName = ref('')
+const showSettings = ref(false)
+const showThemeSettings = ref(false)
+const isMobile = ref(false)
+const rootClasses = ref({})
+// const { currentTheme, themes } = storeToRefs(themeStore)
 
+// 计算属性
 const albumLists = computed(() => {
-    if (musicStore.selectedArtistId) {
-        return musicStore.getArtistAlbums(musicStore.selectedArtistId)
-    }
-    return []
+    return musicStore.selectedArtistId
+        ? musicStore.getArtistAlbums(musicStore.selectedArtistId)
+        : []
 })
 
 const artist = computed(() => {
     return musicStore.artists[musicStore.selectedArtistId?.toString() || '']
 })
-// const artist = computed(() => {
-//     return Array.isArray(musicStore.artists) ? musicStore.artists.find(a => a.id === musicStore.selectedArtistId) : null
-// })
 
-// 数据加载
+
+
+// 生命周期
 onMounted(async () => {
     featuredPlaylists.value = await playlistStore.getFeaturedPlaylists()
-    // musicStore.initMockData()
-    // hotSongs.value = await playlistStore.getHotSongs()
-    // artists.value = Object.values(musicStore.artists)
-    // console.log('albumLists.value', albumLists.value)
+    animationStore.loadSettings()
+    checkDevice()
+    window.addEventListener('resize', checkDevice)
 })
 
-// 点击专辑处理
-const selectPlaylist = (Album: Album) => {
-    currentPlaylistName.value = Album.title
-    currentPlaylistId.value = Album.id
-    console.log('currentPlaylistId:', currentPlaylistId.value)
-    // hotSongs.value = playlist.songs
+// 判断设备类型
+const checkDevice = () => {
+    const ua = navigator.userAgent
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    const smallScreen = window.matchMedia('(max-width: 768px)').matches
+    isMobile.value = (/Mobile|Android|iPhone/i.test(ua) && isTouch) || (smallScreen && isTouch)
+}
+
+// 专辑选择处理
+const selectPlaylist = async (album: Album, index: number) => {
+    const oldIndex = activeAlbumIndex.value
+    activeAlbumIndex.value = index
+    currentPlaylistName.value = album.title
+    currentPlaylistId.value = album.id
+
+    if (animationStore.currentAnimation !== 'none') {
+        transitionName.value = ''
+        await nextTick()
+        transitionName.value = getTransitionName(oldIndex, index)
+    }
+
+    scrollToAlbum(index)
+}
+
+// 获取过渡名称
+const getTransitionName = (oldIndex: number, newIndex: number) => {
+    if (animationStore.currentAnimation === 'none') return ''
+
+    const direction = newIndex > oldIndex ? 'next' : 'prev'
+    return `${animationStore.currentAnimation}-${direction}`
+}
+
+// 滚动到指定专辑
+const scrollToAlbum = (index: number) => {
+    if (!scrollContainer.value) return
+    const container = scrollContainer.value
+    const albumWidth = container.querySelector('.playlist-card')?.clientWidth || 0
+    const scrollPos = index * (albumWidth + 32)
+
+    container.scrollTo({
+        left: scrollPos,
+        behavior: animationStore.currentAnimation !== 'none' ? 'smooth' : 'auto'
+    })
 }
 
 // 滚动控制
 const scroll = (direction: number) => {
     if (!scrollContainer.value) return
-    const scrollAmount = 400
+    const containerWidth = scrollContainer.value.offsetWidth
+    const scrollAmount = containerWidth * 0.8
+
     scrollContainer.value.scrollBy({
         left: direction * scrollAmount,
-        behavior: 'smooth'
+        behavior: animationStore.currentAnimation !== 'none' ? 'smooth' : 'auto'
     })
 }
 
-// 检测滚动位置
+// 滚动位置检测
 const checkScroll = () => {
     if (!scrollContainer.value) return
     const { scrollLeft, scrollWidth, clientWidth } = scrollContainer.value
@@ -66,62 +115,132 @@ const checkScroll = () => {
     showRightArrow.value = scrollLeft < scrollWidth - clientWidth
 }
 
+// 监听动画类型变化
+watch(() => animationStore.currentAnimation, () => {
+    transitionName.value = ''
+})
 
+// 监听专辑索引变化
+watch(activeAlbumIndex, (newVal, oldVal) => {
+    if (animationStore.currentAnimation !== 'none' && Math.abs(newVal - oldVal) > 1) {
+        transitionName.value = newVal > oldVal ? 'slide-jump-next' : 'slide-jump-prev'
+    }
+})
+// 监听设备变化
+watchEffect(() => {
+    rootClasses.value = {
+        'mobile-view': isMobile.value,
+        'desktop-view': !isMobile.value
+    }
+})
+
+console.log('themeStore.themeOptions', themeStore.themeOptions)
 </script>
 
 <template>
-    <div class="home-view">
+    <div class="home-view" :class="rootClasses">
+        <!-- 新增播放列表按钮 -->
+        <!-- <button class="playlist-trigger" @click="togglePlaylist" title="播放列表">
+            <SvgIcon icon="mdi:playlist-music" :size="24" class="icon" />
+        </button> -->
+
+
+        <div class="theme-settings">
+            <button class="theme-trigger" @click="showThemeSettings = !showThemeSettings" title="主题设置">
+                <SvgIcon icon="mdi:palette" :size="24" class="icon" />
+            </button>
+
+            <transition name="slide-fade">
+                <div v-if="showThemeSettings" class="theme-panel">
+                    <h4>主题效果设置</h4>
+                    <div class="animation-options">
+                        <label v-for="option in themeStore.themeOptions" :key="option.value"
+                            :class="{ 'active': themeStore.currentTheme === option.value }">
+                            <!-- {{ option.label }} -->
+                            <input type="radio" :value="option.value" v-model="themeStore.currentTheme"
+                                @change="themeStore.setTheme(option.value)">
+                            <span class="radio-indicator"></span>
+                            <span class="label-text">{{ option.label }}</span>
+                        </label>
+                    </div>
+                </div>
+            </transition>
+        </div>
+
+        <!-- 修改后的设置按钮 -->
+        <div class="animation-settings" :class="{ 'expanded': showSettings }">
+            <button class="settings-trigger" @click="showSettings = !showSettings"
+                :title="showSettings ? '隐藏设置' : '显示设置'">
+                <SvgIcon icon="mdi:animation" :size="24" class="icon" />
+            </button>
+
+            <transition name="slide-fade">
+                <div v-if="showSettings" class="settings-panel">
+                    <h4>动画效果设置</h4>
+                    <div class="animation-options">
+                        <label v-for="option in animationStore.animationOptions" :key="option.value"
+                            :class="{ 'active': animationStore.currentAnimation === option.value }">
+                            <input type="radio" :value="option.value" v-model="animationStore.currentAnimation"
+                                @change="animationStore.saveSettings()">
+                            <span class="radio-indicator"></span>
+                            <span class="label-text">{{ option.label }}</span>
+                        </label>
+                    </div>
+                </div>
+            </transition>
+        </div>
+
         <section class="hero-section">
-            <h1>{{ artist.name }}音乐宇宙</h1>
-            <p>探索{{ artist.name }}的音乐世界</p>
+            <h1>{{ artist?.name }}音乐宇宙</h1>
+            <p>探索{{ artist?.name }}的音乐世界</p>
         </section>
 
         <section class="featured-playlists">
             <h2>精选专辑</h2>
             <div class="playlist-scroll-container">
-                <button class="scroll-arrow left" @click="scroll(-1)" :class="{ 'visible': showLeftArrow }">
-                    ←
+                <button class="scroll-arrow left" @click="scroll(-1)" :class="{ 'visible': showLeftArrow }"
+                    aria-label="向左滚动">
+                    <SvgIcon icon="mdi:chevron-left" :size="32" class="arrow-icon" />
                 </button>
 
-                <div class="playlist-scroll" ref="scrollContainer" @scroll="checkScroll">
-                    <div v-for="playlist in albumLists" :key="playlist.id" class="playlist-card"
-                        :class="{ 'active': playlist.id === currentPlaylistId }"
-                        @click.prevent="selectPlaylist(playlist)">
-                        <img :src="playlist.cover" class="album-cover" />
-                        <div class="playlist-info">
-                            <h3>{{ playlist.title }}</h3>
-                            <p>{{ playlist.description }}</p>
+                <div class="scroll-wrapper" ref="scrollContainer" @scroll="checkScroll">
+                    <transition-group :name="transitionName" tag="div" class="album-content"
+                        :class="animationStore.currentAnimation">
+                        <div v-for="(playlist, index) in albumLists" :key="playlist.id" class="playlist-card" :class="{
+                            'active': playlist.id === currentPlaylistId,
+                            'prev-card': animationStore.currentAnimation === 'slide' && index === activeAlbumIndex - 1,
+                            'next-card': animationStore.currentAnimation === 'slide' && index === activeAlbumIndex + 1
+                        }" @click="selectPlaylist(playlist, index)">
+                            <img :src="playlist.cover" class="album-cover" />
+                            <div class="playlist-info">
+                                <h3>{{ playlist.title }}</h3>
+                                <p>{{ playlist.description }}</p>
+                            </div>
                         </div>
-                    </div>
+                    </transition-group>
                 </div>
 
-                <button class="scroll-arrow left" @click="scroll(-1)" :class="{ 'visible': showLeftArrow }">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" />
-                    </svg>
-                </button>
-
-                <button class="scroll-arrow right" @click="scroll(1)" :class="{ 'visible': showRightArrow }">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
-                    </svg>
+                <button class="scroll-arrow right" @click="scroll(1)" :class="{ 'visible': showRightArrow }"
+                    aria-label="向右滚动">
+                    <SvgIcon icon="mdi:chevron-right" :size="32" class="arrow-icon" />
                 </button>
             </div>
         </section>
 
         <section class="hot-songs">
             <h2>{{ currentPlaylistName }}</h2>
-            <!-- {{ currentPlaylistId }} -->
             <SongList :album="currentPlaylistId" />
         </section>
     </div>
 </template>
 
 <style lang="scss" scoped>
+
 .home-view {
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    position: relative;
 
     .hero-section {
         text-align: center;
@@ -129,11 +248,12 @@ const checkScroll = () => {
 
         h1 {
             font-size: 3rem;
-            color: $accent-color;
+            // color: $accent-color;
+            margin-bottom: 1rem;
         }
 
         p {
-            color: $text-secondary;
+            // color: $text-secondary;
             font-size: 1.2rem;
         }
     }
@@ -143,12 +263,9 @@ const checkScroll = () => {
     position: relative;
     margin: 2rem 0;
 
-    .playlist-scroll {
-        display: flex;
+    .scroll-wrapper {
         overflow-x: auto;
         scroll-behavior: smooth;
-        gap: 2rem;
-        padding: 1rem 0;
         -ms-overflow-style: none;
         scrollbar-width: none;
 
@@ -156,52 +273,392 @@ const checkScroll = () => {
             display: none;
         }
     }
+}
 
-    .playlist-card {
-        flex: 0 0 300px;
-        // flex: 0 0 auto;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.3s;
-        overflow: hidden;
+.album-content {
+    display: inline-flex;
+    gap: 2rem;
+    padding: 1rem 0;
+    min-width: 100%;
+    position: relative;
 
-        &.active {
-            border: 2px solid $accent-color;
-            box-shadow: 0 0 15px rgba($accent-color, 0.3);
+    &.scale .playlist-card {
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+    }
+
+    &.fade .playlist-card {
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+}
+
+.playlist-card {
+    flex: 0 0 300px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition:
+        transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.4s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+    border: 2px solid transparent;
+    will-change: transform, opacity;
+
+    &.active {
+        border-color: $accent-color;
+        box-shadow: 0 0 15px rgba($accent-color, 0.3);
+        z-index: 2;
+        transform: scale(1.05);
+    }
+
+    .album-cover {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        border-bottom: 2px solid rgba($accent-color, 0.5);
+    }
+
+    .playlist-info {
+        padding: 1.5rem;
+
+        h3 {
+            margin: 0 0 0.5rem;
+            // color: $text-primary;
+            font-size: 1.2rem;
         }
+
+        p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    }
+
+    &.prev-card {
+        transform: translateX(-30%) scale(0.95);
+        opacity: 0.6;
+        z-index: 1;
+    }
+
+    &.next-card {
+        transform: translateX(30%) scale(0.95);
+        opacity: 0.6;
+        z-index: 1;
+    }
+}
+
+/* 动画效果 */
+.slide-next-enter-active,
+.slide-prev-enter-active {
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-next-enter-from {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.slide-next-leave-to {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+.slide-prev-enter-from {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+.slide-prev-leave-to {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.scale-next-enter-active,
+.scale-prev-enter-active {
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-next-enter-from {
+    transform: scale(0.8) translateX(100%);
+    opacity: 0;
+}
+
+.scale-next-leave-to {
+    transform: scale(1.2) translateX(-30%);
+    opacity: 0;
+}
+
+.scale-prev-enter-from {
+    transform: scale(0.8) translateX(-100%);
+    opacity: 0;
+}
+
+.scale-prev-leave-to {
+    transform: scale(1.2) translateX(30%);
+    opacity: 0;
+}
+
+.fade-next-enter-active,
+.fade-prev-enter-active {
+    transition: all 0.6s ease;
+}
+
+.fade-next-enter-from {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.fade-prev-enter-from {
+    opacity: 0;
+    transform: translateX(-100%);
+}
+
+.fade-next-leave-to,
+.fade-prev-leave-to {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+/* 设置面板 */
+.animation-settings {
+    position: absolute;
+    bottom: auto;
+    z-index: 1000;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+
+    &.expanded .settings-panel {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 修改后的设置按钮位置 */
+.animation-settings {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+    transition: all 0.3s ease;
+
+    &.expanded {
+        .settings-panel {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+.settings-trigger {
+    // background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: rotate(90deg) scale(1.1);
+        background: $accent-color;
+
+        .icon {
+            color: white;
+        }
+    }
+
+    .icon {
+        color: $accent-color;
+        transition: color 0.3s ease;
+    }
+}
+
+/* 调整设置面板位置 */
+.settings-panel {
+    position: absolute;
+    bottom: auto;
+    right: 60px;
+    /* 与按钮的间距 */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 220px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .playlist-trigger {
+        right: 10px;
+        bottom: 10px;
+        width: 42px;
+        height: 42px;
+    }
+
+    .animation-settings {
+        right: 10px;
+    }
+
+    .settings-panel {
+        width: 200px;
+        right: 50px;
+    }
+}
+
+.animation-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    label {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s ease;
 
         &:hover {
-            transform: translateY(-5px);
+            background: rgba($accent-color, 0.1);
         }
+
+        &.active {
+            background: rgba($accent-color, 0.2);
+
+            .radio-indicator {
+                &::after {
+                    transform: scale(1);
+                }
+            }
+        }
+    }
+
+    input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .radio-indicator {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+        margin-right: 8px;
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 8px;
+            height: 8px;
+            background: $accent-color;
+            border-radius: 50%;
+            transform: scale(0);
+            transition: transform 0.2s ease;
+        }
+    }
+
+    .label-text {
+        font-size: 0.9rem;
+        // color: var(--text-primary);
+    }
+}
+
+/* 主题设置样式 */
+.theme-settings {
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+}
+
+.theme-trigger {
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: rotate(15deg) scale(1.1);
+        box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
+    }
+
+    .icon {
+        color: var(--accent);
+    }
+}
+
+.theme-panel {
+    position: absolute;
+    left: 70px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 220px;
+
+    h4 {
+        margin: 0 0 15px;
+        color: var(--text-primary);
+    }
+}
+
+@media (max-width: 768px) {
+    .home-view {
+        padding: 1rem;
+
+        .hero-section h1 {
+            font-size: 2rem;
+        }
+    }
+
+    .playlist-card {
+        flex: 0 0 250px;
 
         .album-cover {
-            width: 100%;
-            height: 300px;
-            object-fit: cover;
-            border-bottom: 2px solid rgba($accent-color, 0.5);
+            height: 250px;
         }
+    }
 
-        .playlist-info {
-            padding: 1.5rem;
+    .animation-settings {
+        right: 10px;
+        bottom: 10px;
+    }
 
-            h3 {
-                margin: 0 0 0.5rem;
-                color: $text-primary;
-                font-size: 1.2rem;
-            }
-
-            p {
-                margin: 0;
-                color: $text-secondary;
-                font-size: 0.9rem;
-                line-height: 1.4;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-            }
-        }
+    .settings-panel {
+        width: 200px;
     }
 }
 
@@ -209,67 +666,47 @@ const checkScroll = () => {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    background: rgba($primary-color, 0.8);
-    border: 2px solid $border-color;
-    // border-radius: 50%;
-    color: $accent-color;
-    font-size: 1.5rem;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    // background: var(--bg-secondary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     opacity: 0;
-    transition: all 0.3s;
+    transition:
+        opacity 0.3s ease,
+        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        background 0.3s ease;
     z-index: 10;
 
     &:hover {
-        background: $accent-color;
-        color: $primary-color;
+        background: var(--accent);
+        transform: translateY(-50%) scale(1.1);
+
+        .arrow-icon {
+            color: white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+    }
+
+    &.left {
+        left: -24px;
+    }
+
+    &.right {
+        right: -24px;
+    }
+
+    .arrow-icon {
+        color: var(--accent);
+        transition:
+            color 0.3s ease,
+            filter 0.2s ease;
     }
 
     &.visible {
         opacity: 1;
-    }
-
-    &.left {
-        left: -20px;
-    }
-
-    &.right {
-        right: -20px;
-    }
-}
-
-.hot-songs {
-    margin-top: 3rem;
-
-    h2 {
-        color: $accent-color;
-        border-left: 4px solid $accent-color;
-        padding-left: 1rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .scroll-arrow {
-        display: none;
-    }
-
-    .playlist-card {
-        flex: 0 0 250px !important;
-
-        .album-cover {
-            height: 250px !important;
-        }
-    }
-
-    .hero-section {
-        h1 {
-            font-size: 2rem !important;
-        }
-
-        p {
-            font-size: 1rem !important;
-        }
     }
 }
 </style>

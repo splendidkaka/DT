@@ -22,7 +22,7 @@ onMounted(async () => {
     <div class="artist-header">
       <div class="artist-profile">
         <img 
-          src="@/assets/david-tao-profile.jpg" 
+          src="@/assets/covers/david-tao.jpg" 
           class="artist-photo"
         />
         <h1>{{ artistInfo.name }}</h1>
@@ -72,14 +72,14 @@ onMounted(async () => {
       height: 300px;
       border-radius: 50%;
       object-fit: cover;
-      border: 4px solid $accent-color;
+      // border: 4px solid $accent-color;
     }
 
     .artist-bio {
       flex: 1;
       font-size: 1.1rem;
       line-height: 1.6;
-      color: $text-secondary;
+      // color: $text-secondary;
     }
   }
 
@@ -109,7 +109,7 @@ onMounted(async () => {
         }
 
         .release-year {
-          color: $text-secondary;
+          // color: $text-secondary;
           font-size: 0.9rem;
         }
       }

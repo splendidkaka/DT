@@ -17,26 +17,16 @@ const handleSongClick = (song: Song) => {
   console.log('song clicked:', song)
 }
 const albumSongs = computed(() => {
-  console.log('props.album:', props.album)
-  console.log('musicStore:', musicStore.getSongsByAlbum(props.album))
   return musicStore.getSongsByAlbum(props.album)
 })
 onMounted(() => {
-  // console.log('props.album:', props.album)
-  // console.log('musicStore.getArtistBySong(song.id):', musicStore.getArtistBySong('song-1'))
 })
-// console.log('songs:', props.songs)
 </script>
 
 <template>
   <ul class="song-list">
     <!-- {{ albumSongs }} -->
-    <li 
-      v-for="song in albumSongs" 
-      :key="song.id"
-      @click="handleSongClick(song)"
-      class="song-item"
-    >
+    <li v-for="song in albumSongs" :key="song.id" @click="handleSongClick(song)" class="song-item">
       <img :src="musicStore.getAlbumCover(song.albumId)" class="album-cover" />
       <div class="song-info">
         <h3>{{ song.title }}</h3>
@@ -59,7 +49,7 @@ onMounted(() => {
     transition: background 0.3s;
 
     &:hover {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
     }
 
     .album-cover {
@@ -72,13 +62,13 @@ onMounted(() => {
     .song-info {
       h3 {
         margin: 0;
-        color: white;
+        // color: white;
       }
 
       p {
         margin: 0;
         text-align: left;
-        color: #ccc;
+        color: var(--text-secondary);
       }
     }
   }

@@ -11,4 +11,6 @@ export const useSidebarStore = defineStore('sidebar', {
       this.playlistVisible = !this.playlistVisible
     }
   }
+  ,
+  persist: true
 })

@@ -1,6 +1,6 @@
 // stores/music.ts
 import { defineStore } from 'pinia'
-import type { Artist, Album, Song, Playlist } from '@/types/music'
+import type { Artist, Album, Song, Playlist, LyricLine } from '@/types/music'
 import {
     mockArtists,
     mockAlbums,
@@ -21,6 +21,11 @@ interface MusicState {
         duration: number
     }
     selectedArtistId: string | null
+    lyrics: LyricLine[] // 新增歌词数据
+    currentLyricIndex: number // 当前歌词行索引
+    showLyricsPanel: boolean // 歌词面板显示状态
+    showTranslation: boolean // 是否显示翻译
+    lyricOffset: number // 歌词面板滑动偏移量
 }
 
 export const useMusicStore = defineStore('music', {
@@ -36,21 +41,15 @@ export const useMusicStore = defineStore('music', {
             progress: 0,
             duration: 0
         },
-        selectedArtistId: 'dt'
+        selectedArtistId: 'dt',
+        lyrics: [],
+        currentLyricIndex: -1,
+        showLyricsPanel: false,
+        showTranslation: false,
+        lyricOffset: 0
     }),
 
     getters: {
-        // // 精选专辑列表
-        // featuredPlaylists(): Album[] {
-        //     return Object.values(this.albums).filter(a => a.featured)
-        // },
-
-        // // 热门歌曲（播放量前10）
-        // hotSongs(): Song[] {
-        //     return Object.values(this.songs)
-        //         .sort((a, b) => (b.playCount || 0) - (a.playCount || 0))
-        //         .slice(0, 10)
-        // },
 
         getArtist: (state) => (id: string) => state.artists[id],
 
@@ -78,15 +77,36 @@ export const useMusicStore = defineStore('music', {
             return Object.values(state.artists).find(artist => artist.id === state.songs[songId]?.artists[0])?.name || null
         },
         currentSong(state): Song | null {
-            console.log('currentSong', state.currentPlayer.queue[state.currentPlayer.currentIndex])
+            console.log('currentSong', this.songs[state.currentPlayer.queue[state.currentPlayer.currentIndex]] || null)
             return this.songs[state.currentPlayer.queue[state.currentPlayer.currentIndex]] || null
         },
         // 获取当前播放进度百分比
         progressPercent(state): number {
             return (state.currentPlayer.progress / state.currentPlayer.duration) * 100 || 0
         },
+        // 获取当前播放歌曲时间 时间戳
+        currentTime(state): number {
+            return state.currentPlayer.progress
+        },
         getselectedArtistId(state): string | null {
             return state.selectedArtistId
+        },
+        // 当前歌词文本
+        currentLyricText: (state) => {
+            return state.lyrics[state.currentLyricIndex]?.text || ''
+        },
+
+        // 带时间的歌词格式
+        formattedLyrics: (state) => {
+            return state.lyrics.map(lyric => ({
+                ...lyric,
+                timeFormatted: `${Math.floor(lyric.time / 60)}:${(lyric.time % 60).toString().padStart(2, '0')}`
+            }))
+        },
+
+        // 是否包含歌词
+        hasLyrics: (state) => {
+            return state.lyrics.length > 0
         }
     },
 
@@ -204,6 +224,80 @@ export const useMusicStore = defineStore('music', {
         },
         setSelectedArtistId(id: string) {
             this.selectedArtistId = id
+        },
+        // 加载歌词数据
+        async loadLyrics(songId: string) {
+            const song = this.songs[songId]
+            if (song?.lyrics) {
+                this.lyrics = this.parseLyrics(song.lyrics)
+                this.currentLyricIndex = -1
+            }
+        },
+
+        // 切换歌词面板
+        toggleLyricsPanel(visible?: boolean) {
+            this.showLyricsPanel = visible ?? !this.showLyricsPanel
+            if (!this.showLyricsPanel) {
+                this.lyricOffset = 0 // 重置偏移量
+            }
+        },
+
+        setLyrics(lyrics: LyricLine[]) {
+            this.lyrics = lyrics;
+            this.currentLyricIndex = -1;
+        },
+
+        // 更新歌词索引（在播放进度更新时调用）
+        updateLyricIndex(currentTime: number) {
+            if (!this.lyrics.length) return;
+
+            // 二分查找优化性能
+            let low = 0;
+            let high = this.lyrics.length - 1;
+
+            while (low <= high) {
+                const mid = Math.floor((low + high) / 2);
+                const time = this.lyrics[mid].time;
+
+                if (time < currentTime) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+
+            this.currentLyricIndex = Math.max(high, 0);
+        },
+
+        // 歌词滑动处理
+        setLyricOffset(offset: number) {
+            this.lyricOffset = Math.max(0, offset)
+
+            // 滑动超过阈值自动关闭
+            if (offset > 150) {
+                this.toggleLyricsPanel(false)
+            }
+        },
+
+        // 解析歌词文件（示例）
+        parseLyrics(lyricString: string): LyricLine[] {
+            const lines = lyricString.split('\n')
+            const timeRegex = /$$(\d+):(\d+\.?\d*)$$/
+
+            return lines
+                .map(line => {
+                    const match = line.match(timeRegex)
+                    if (!match) return null
+
+                    const minutes = parseFloat(match[1])
+                    const seconds = parseFloat(match[2])
+                    return {
+                        time: minutes * 60 + seconds,
+                        text: line.replace(timeRegex, '').trim()
+                    }
+                })
+                .filter(Boolean) as LyricLine[]
         }
-    }
+    },
+    persist: true
 })

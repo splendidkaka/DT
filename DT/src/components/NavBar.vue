@@ -95,7 +95,7 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
 </template>
 
 <style lang="scss" scoped>
-@import "@/styles/variables.scss";
+// @use "@/styles/_variables.scss";
 
 .navbar {
   display: flex;
