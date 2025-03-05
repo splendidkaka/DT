@@ -5,7 +5,7 @@ import { usePlaylistStore } from '@/store/modules/playlist'
 import { useMusicStore } from '@/store/modules/music'
 import { useAnimationStore } from '@/store/modules/animation'
 import { useThemeStore } from '@/store/modules/theme'
-import type { Playlist, Song, Album, Artist } from '@/types/music'
+import type { Playlist, Album } from '@/types/music'
 
 
 //store 初始化
@@ -28,6 +28,19 @@ const showThemeSettings = ref(false)
 const isMobile = ref(false)
 const rootClasses = ref({})
 // const { currentTheme, themes } = storeToRefs(themeStore)
+const dragState = ref({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    currentX: 0,
+    currentY: 0
+})
+
+// 新增面板位置状态
+const panelPosition = ref({
+    direction: 'right',
+    offset: 70 // 原left值
+})
 
 // 计算属性
 const albumLists = computed(() => {
@@ -35,20 +48,50 @@ const albumLists = computed(() => {
         ? musicStore.getArtistAlbums(musicStore.selectedArtistId)
         : []
 })
-
 const artist = computed(() => {
     return musicStore.artists[musicStore.selectedArtistId?.toString() || '']
 })
 
+// 监听动画类型变化
+watch(() => animationStore.currentAnimation, () => {
+    transitionName.value = ''
+})
 
+// 监听专辑索引变化
+watch(activeAlbumIndex, (newVal, oldVal) => {
+    if (animationStore.currentAnimation !== 'none' && Math.abs(newVal - oldVal) > 1) {
+        transitionName.value = newVal > oldVal ? 'slide-jump-next' : 'slide-jump-prev'
+    }
+})
+// 监听设备变化
+watchEffect(() => {
+    rootClasses.value = {
+        'mobile-view': isMobile.value,
+        'desktop-view': !isMobile.value
+    }
+})
+
+
+// 监听面板展开状态
+watch(showThemeSettings, (val) => {
+    if (val) updatePanelPosition()
+})
 
 // 生命周期
 onMounted(async () => {
+    const savedPos = localStorage.getItem('themePanelPosition')
     featuredPlaylists.value = await playlistStore.getFeaturedPlaylists()
     animationStore.loadSettings()
     checkDevice()
     window.addEventListener('resize', checkDevice)
+    if (savedPos) {
+        const { x, y } = JSON.parse(savedPos)
+        dragState.value.currentX = x
+        dragState.value.currentY = y
+    }
 })
+
+
 
 // 判断设备类型
 const checkDevice = () => {
@@ -114,26 +157,113 @@ const checkScroll = () => {
     showLeftArrow.value = scrollLeft > 0
     showRightArrow.value = scrollLeft < scrollWidth - clientWidth
 }
+// 桌面端事件
+const startDrag = (e: MouseEvent) => {
+    dragState.value.isDragging = true
+    dragState.value.startX = e.clientX - dragState.value.currentX
+    dragState.value.startY = e.clientY - dragState.value.currentY
 
-// 监听动画类型变化
-watch(() => animationStore.currentAnimation, () => {
-    transitionName.value = ''
-})
+    document.addEventListener('mousemove', onDrag)
+    document.addEventListener('mouseup', stopDrag)
+}
 
-// 监听专辑索引变化
-watch(activeAlbumIndex, (newVal, oldVal) => {
-    if (animationStore.currentAnimation !== 'none' && Math.abs(newVal - oldVal) > 1) {
-        transitionName.value = newVal > oldVal ? 'slide-jump-next' : 'slide-jump-prev'
-    }
-})
-// 监听设备变化
-watchEffect(() => {
-    rootClasses.value = {
-        'mobile-view': isMobile.value,
-        'desktop-view': !isMobile.value
-    }
-})
+// 移动端事件
+const startTouchDrag = (e: TouchEvent) => {
+    dragState.value.isDragging = true
+    const touch = e.touches
+    dragState.value.startX = touch[0].clientX - dragState.value.currentX
+    dragState.value.startY = touch[0].clientY - dragState.value.currentY
 
+    document.addEventListener('touchmove', onTouchDrag, { passive: false })
+    document.addEventListener('touchend', stopDrag)
+}
+
+const onDrag = (e: MouseEvent) => {
+    if (!dragState.value.isDragging) return
+    e.preventDefault()
+
+    dragState.value.currentX = e.clientX - dragState.value.startX
+    dragState.value.currentY = e.clientY - dragState.value.startY
+
+    // 边界限制
+    const { innerWidth, innerHeight } = window
+    dragState.value.currentX = Math.max(0, Math.min(innerWidth - 100, dragState.value.currentX))
+    console.log('innerHeight', innerHeight)
+    dragState.value.currentY = Math.max(100, Math.min(innerHeight - 300, dragState.value.currentY))
+    console.log('dragState.value.currentY', dragState.value.currentY)
+}
+
+const onTouchDrag = (e: TouchEvent) => {
+    if (!dragState.value.isDragging) return
+    e.preventDefault()
+
+    const touch = e.touches
+    dragState.value.currentX = touch[0].clientX - dragState.value.startX
+    dragState.value.currentY = touch[0].clientY - dragState.value.startY
+
+    // 边界限制
+    const { innerWidth, innerHeight } = window
+    dragState.value.currentX = Math.max(0, Math.min(innerWidth - 100, dragState.value.currentX))
+    // console.log('dragState.value.currentX', dragState.value.currentX)
+    dragState.value.currentY = Math.max(0, Math.min(innerHeight - 300, dragState.value.currentY))
+
+}
+
+const stopDrag = () => {
+
+    // 在 stopDrag 中添加
+    if (dragState.value.currentY < 50) {
+        dragState.value.currentY = 0;
+    } else if (dragState.value.currentY > window.innerHeight - 150) {
+        dragState.value.currentY = window.innerHeight - 100;
+    } innerWidth - 100
+    dragState.value.isDragging = false
+    // 保存位置
+    localStorage.setItem('themePanelPosition',
+        JSON.stringify({
+            x: dragState.value.currentX,
+            y: dragState.value.currentY
+        }))
+
+    // 清除事件监听
+    document.removeEventListener('mousemove', onDrag)
+    document.removeEventListener('mouseup', stopDrag)
+    document.removeEventListener('touchmove', onTouchDrag)
+    document.removeEventListener('touchend', stopDrag)
+
+    updatePanelPosition()
+}
+
+// 新增面板位置计算
+const updatePanelPosition = () => {
+    nextTick(() => {
+        const button = document.querySelector('.theme-trigger')
+        const panel = document.querySelector('.theme-panel')
+        if (!button || !panel) return
+
+        const buttonRect = button.getBoundingClientRect()
+        const panelWidth = (panel as HTMLElement).offsetWidth
+        const viewportWidth = window.innerWidth
+
+        // 计算右侧可用空间
+        const rightSpace = viewportWidth - buttonRect.right
+        // 计算左侧可用空间
+        const leftSpace = buttonRect.left
+
+        // 智能选择展开方向
+        if (rightSpace < panelWidth && leftSpace > panelWidth) {
+            panelPosition.value = {
+                direction: 'left',
+                offset: -panelWidth - 20 // 左侧留出20px间距
+            }
+        } else {
+            panelPosition.value = {
+                direction: 'right',
+                offset: 70 // 保持原右侧间距
+            }
+        }
+    })
+}
 console.log('themeStore.themeOptions', themeStore.themeOptions)
 </script>
 
@@ -144,14 +274,18 @@ console.log('themeStore.themeOptions', themeStore.themeOptions)
             <SvgIcon icon="mdi:playlist-music" :size="24" class="icon" />
         </button> -->
 
-
-        <div class="theme-settings">
-            <button class="theme-trigger" @click="showThemeSettings = !showThemeSettings" title="主题设置">
+        <!-- <teleport to='#my-el-main'> -->
+        <div class="theme-settings" :style="{
+            transform: `translate(${dragState.currentX}px, ${dragState.currentY}px)`,
+            transition: dragState.isDragging ? 'none' : 'transform 0.3s ease'
+        }">
+            <button class="theme-trigger" @mousedown="startDrag" @touchstart="startTouchDrag"
+                @click="showThemeSettings = !showThemeSettings" title="主题设置">
                 <SvgIcon icon="mdi:palette" :size="24" class="icon" />
             </button>
 
             <transition name="slide-fade">
-                <div v-if="showThemeSettings" class="theme-panel">
+                <div v-if="showThemeSettings" class="theme-panel" :class="[panelPosition.direction]">
                     <h4>主题效果设置</h4>
                     <div class="animation-options">
                         <label v-for="option in themeStore.themeOptions" :key="option.value"
@@ -166,7 +300,7 @@ console.log('themeStore.themeOptions', themeStore.themeOptions)
                 </div>
             </transition>
         </div>
-
+        <!-- </teleport> -->
         <!-- 修改后的设置按钮 -->
         <div class="animation-settings" :class="{ 'expanded': showSettings }">
             <button class="settings-trigger" @click="showSettings = !showSettings"
@@ -204,8 +338,7 @@ console.log('themeStore.themeOptions', themeStore.themeOptions)
                 </button>
 
                 <div class="scroll-wrapper" ref="scrollContainer" @scroll="checkScroll">
-                    <transition-group :name="transitionName" tag="div" class="album-content"
-                        :class="animationStore.currentAnimation">
+                    <transition-group :name="animationStore.currentAnimation" tag="div" class="album-content">
                         <div v-for="(playlist, index) in albumLists" :key="playlist.id" class="playlist-card" :class="{
                             'active': playlist.id === currentPlaylistId,
                             'prev-card': animationStore.currentAnimation === 'slide' && index === activeAlbumIndex - 1,
@@ -235,13 +368,14 @@ console.log('themeStore.themeOptions', themeStore.themeOptions)
 </template>
 
 <style lang="scss" scoped>
-
 .home-view {
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
     position: relative;
 
+    // height: 100vh;
+    // overflow-y: auto;
     .hero-section {
         text-align: center;
         margin-bottom: 3rem;
@@ -342,13 +476,13 @@ console.log('themeStore.themeOptions', themeStore.themeOptions)
     }
 
     &.prev-card {
-        transform: translateX(-30%) scale(0.95);
+        transform: scale(0.95);
         opacity: 0.6;
         z-index: 1;
     }
 
     &.next-card {
-        transform: translateX(30%) scale(0.95);
+        transform: scale(0.95);
         opacity: 0.6;
         z-index: 1;
     }
@@ -589,49 +723,94 @@ console.log('themeStore.themeOptions', themeStore.themeOptions)
 
 /* 主题设置样式 */
 .theme-settings {
+    /* 核心定位 */
     position: fixed;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 1000;
-}
+    z-index: 9999;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
 
-.theme-trigger {
-    background: var(--bg-secondary);
-    border: 2px solid var(--accent);
-    border-radius: 50%;
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-
-    &:hover {
-        transform: rotate(15deg) scale(1.1);
-        box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
+    &:active {
+        cursor: grabbing;
     }
 
-    .icon {
-        color: var(--accent);
+    // right: 20px;
+    .theme-trigger {
+        // background: var(--bg-secondary);
+        border: 2px solid var(--accent);
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        transition: transform 0.3s ease;
+
+        &:active {
+            transform: scale(1.1);
+        }
+
+        &:hover {
+            transform: rotate(15deg) scale(1.1);
+            box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
+        }
+
+        .icon {
+            color: var(--accent);
+        }
     }
+
+    .theme-panel {
+        position: absolute;
+        left: 70px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        width: 220px;
+        pointer-events: auto;
+
+        // 默认右侧布局
+        &.right {
+            left: 70px;
+            right: auto;
+        }
+
+        // 左侧布局
+        &.left {
+            left: auto;
+            right: 70px;
+        }
+
+        h4 {
+            margin: 0 0 15px;
+            color: var(--text-primary);
+        }
+    }
+
+    // @media (max-width: 480px) {
+
+    //     top: auto;
+    //     bottom: 100%;
+    //     left: 50%;
+    //     transform: translateX(-50%);
+    //     margin-bottom: 15px;
+
+    // }
+
 }
 
-.theme-panel {
-    position: absolute;
-    left: 70px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    width: 220px;
 
-    h4 {
-        margin: 0 0 15px;
-        color: var(--text-primary);
+
+
+/* 修复移动端300ms延迟 */
+@media (hover: none) {
+    .theme-settings {
+        touch-action: pan-y;
     }
 }
 

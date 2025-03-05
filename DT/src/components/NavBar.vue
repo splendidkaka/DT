@@ -2,7 +2,7 @@
 import { RouterLink, useRouter } from 'vue-router'
 import { useMusicStore } from '@/store/modules/music'
 import { ref, onMounted, onUnmounted } from 'vue'
-import type{ Artist } from '@/types/music'
+import type { Artist } from '@/types/music'
 
 
 // const router = useRouter()
@@ -23,18 +23,25 @@ const isDropdownOpen = ref(false)
 onMounted(() => {
   // nextTick(() => {
   artists.value = Object.values(musicStore.artists)
+  console.log('musicStore.artists:', musicStore.artists)
   console.log('artists:', artists.value)
   // })
 })
 
 // 关闭下拉的点击外部检测
 const closeDropdown = (e: MouseEvent) => {
+  console.log('e.target:', e.target)
   if (!(e.target as HTMLElement).closest('.artist-dropdown')) {
     isDropdownOpen.value = false
   }
 }
 
-onMounted(() => window.addEventListener('click', closeDropdown))
+const toggleDropdown = () => {
+  isDropdownOpen.value = !isDropdownOpen.value
+  window.addEventListener('click', closeDropdown)
+}
+
+// onMounted(() => window.addEventListener('click', closeDropdown))
 onUnmounted(() => window.removeEventListener('click', closeDropdown))
 </script>
 
@@ -44,26 +51,18 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
       <span class="logo-icon">🎸</span>
       <span class="logo-text">MUSIC CENTER</span>
     </RouterLink>
-    
+
     <div class="nav-content">
       <div class="nav-links">
-        <RouterLink 
-          v-for="link in navLinks"
-          :key="link.path"
-          :to="link.path"
-          class="nav-link"
-        >
+        <RouterLink v-for="link in navLinks" :key="link.path" :to="link.path" class="nav-link">
           <span class="link-icon">{{ link.icon }}</span>
-          {{ link.name }}
+          <span class="link-text"> {{ link.name }}</span>
         </RouterLink>
       </div>
 
       <!-- 艺术家下拉菜单 -->
       <div class="artist-dropdown">
-        <div 
-          class="dropdown-trigger"
-          @click="isDropdownOpen = !isDropdownOpen"
-        >
+        <div class="dropdown-trigger" @click="toggleDropdown">
           <span class="trigger-icon">👨🎤</span>
           <span class="trigger-text">选择歌手</span>
           <span class="arrow" :class="{ open: isDropdownOpen }">▼</span>
@@ -71,12 +70,8 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
 
         <transition name="dropdown">
           <div v-show="isDropdownOpen" class="dropdown-menu">
-            <div 
-              v-for="artist in artists"
-              :key="artist.id"
-              class="dropdown-item"
-              @click="musicStore.setSelectedArtistId(artist.id)"
-            >
+            <div v-for="artist in artists" :key="artist.id" class="dropdown-item"
+              @click="musicStore.setSelectedArtistId(artist.id)">
               <!-- <img 
                 :src="artist.cover || '/default-artist.jpg'"
                 class="artist-avatar"
@@ -108,8 +103,9 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 1000;
-
+  width: 100vw;
   .logo {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     text-decoration: none;
@@ -128,7 +124,7 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
       font-size: 1.4rem;
       font-weight: 700;
       background: linear-gradient(45deg, $accent-primary, $accent-secondary);
-      -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
   }
@@ -141,8 +137,8 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
 
   .nav-links {
     display: flex;
-    gap: 1.5rem;
-
+    // gap: 1.5rem;
+    flex-shrink: 0;
     .nav-link {
       color: $text-primary;
       text-decoration: none;
@@ -166,16 +162,17 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
 
       &:hover {
         background: rgba(white, 0.05);
-        
+
         &::after {
           width: 100%;
           left: 0;
+          // background-color:aqua;
         }
       }
 
       &.router-link-exact-active {
         color: $accent-primary;
-        
+
         &::after {
           width: 100%;
           left: 0;
@@ -190,8 +187,8 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
   }
 
   .artist-dropdown {
-    position: relative;
-
+    // position: relative;
+    flex-shrink: 0;
     .dropdown-trigger {
       display: flex;
       align-items: center;
@@ -291,8 +288,8 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
 @media (max-width: 768px) {
   .navbar {
     padding: 0 1rem;
-    height: 56px;
-
+    // height: 56px;
+    width: 100vw;
     .logo .logo-text {
       display: none;
     }
@@ -301,14 +298,18 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
       gap: 1rem;
     }
 
-    .nav-links {
+    // .nav-links {
+    //   display: none;
+      
+    // }
+    .link-text{
       display: none;
     }
 
     .artist-dropdown {
       .dropdown-trigger {
         padding: 0.5rem;
-        
+
         .trigger-text {
           display: none;
         }

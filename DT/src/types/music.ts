@@ -22,6 +22,7 @@ export interface Album {
 
 // 歌曲类型
 export interface Song {
+    [x: string]: any;
     id: string;
     title: string;
     duration: number;     // 时长（秒）

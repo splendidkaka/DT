@@ -46,10 +46,11 @@ onMounted(() => {
     align-items: center;
     padding: 1rem;
     cursor: pointer;
-    transition: background 0.3s;
-
+    transition: background-color 0.3s;
+    
     &:hover {
-      background: rgba(255, 255, 255, 0.1);
+      // background: rgba(255, 255, 255, 0.1);
+      background-color: var(--item-hover-bg);
     }
 
     .album-cover {

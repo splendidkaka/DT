@@ -7,7 +7,7 @@
                     <!-- 头部 -->
                     <div class="lyric-header">
                         <div class="song-info">
-                            <img :src="cover" class="album-cover" />
+                            <img :src="albumCover" class="album-cover" />
                             <div class="meta">
                                 <h3 class="title">{{ title }}</h3>
                                 <p class="artist">{{ artist }}</p>
@@ -53,7 +53,7 @@ const props = defineProps({
 const musicStore = useMusicStore()
 const emit = defineEmits(['update:visible'])
 
-const lyricsList = ref<LyricLine[]>([])
+// const lyricsList = ref<LyricLine[]>([])
 
 // const lyrics = computed(() => {
 //     if (musicStore.currentSong?.lyrics) {
@@ -69,7 +69,7 @@ const touchStartY = ref(0)
 const currentTranslateY = ref(0)
 const offsetY = ref(0)
 const closing = ref(false)
-
+const lyricsList = ref<LyricLine[]>([])
 // 歌词滚动定位
 const lyricWrapper = ref<HTMLElement>()
 const currentRef = ref<HTMLElement>()
@@ -100,6 +100,29 @@ const currentLine = computed(() => {
         result :
         lyrics.length - 1;
 });
+//当前歌曲
+const currentSong = computed(() => musicStore.currentSong)
+//专辑封面
+const albumCover = computed(() =>
+    musicStore.getAlbumCover(currentSong.value?.albumId || '')
+)
+
+// promise回调不能用computed
+// const lyricsList = computed(() => {
+//     if (musicStore.currentSong?.lyrics) {
+//         loadLyric(musicStore.currentSong?.lyrics).then(lyrics => {
+//             console.log('lyrics:', lyrics)
+//             return lyrics
+//         })
+//     }
+// })
+
+// 更新歌词
+watch(() => musicStore.currentSong, async (newSong) => {
+    if (newSong?.lyrics) {
+        lyricsList.value = await loadLyric(newSong.lyrics)
+    }
+}, { immediate: true })
 
 // 自动滚动到当前歌词
 const scrollToCurrent = () => {
@@ -117,24 +140,35 @@ const scrollToCurrent = () => {
 // 监听当前歌词变化
 watch(currentLine, () => {
     nextTick(scrollToCurrent)
-    console.log('监听滚动:')
+    // console.log('监听滚动:')
 })
 
 
 // 触摸处理
 const onTouchStart = (e: TouchEvent) => {
+
+
     touchStartY.value = e.touches[0].clientY
+
     currentTranslateY.value = offsetY.value
 }
 
 const onTouchMove = (e: TouchEvent) => {
     if (closing.value) return
-    const deltaY = e.touches[0].clientY - touchStartY.value
-    offsetY.value = Math.max(0, currentTranslateY.value + deltaY)
+
+    const isInLyricWrapper = (e.target as HTMLElement).closest('.song-info');
+
+    console.log('isInLyricWrapper:', isInLyricWrapper)
+
+    if (isInLyricWrapper) {
+        const deltaY = e.touches[0].clientY - touchStartY.value
+        offsetY.value = Math.max(0, currentTranslateY.value + deltaY)
+    }
+
 }
 
 const onTouchEnd = () => {
-    if (offsetY.value > 120) {
+    if (offsetY.value > 200) {
         closing.value = true
         emit('update:visible', false)
     } else {
@@ -157,13 +191,8 @@ watch(() => props.visible, (val) => {
 
 onMounted(() => {
 
-    console.log('currentSong:', musicStore.currentSong)
-    if (musicStore.currentSong?.lyrics) {
-        loadLyric(musicStore.currentSong?.lyrics).then(lyrics => {
-            console.log('lyrics:', lyrics)
-            lyricsList.value = lyrics
-        })
-    }
+    // console.log('currentSong:', musicStore.currentSong)
+    console.log('lyricsList', lyricsList.value)
 })
 
 
@@ -188,11 +217,23 @@ onMounted(() => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: #fff;
+    background: var(--bg-primary);
     border-radius: 16px 16px 0 0;
     padding: 12px;
     max-height: 85vh;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 4px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 2px;
+    }
 }
 
 .lyric-header {
@@ -264,10 +305,11 @@ onMounted(() => {
         transition: all 0.3s ease;
         opacity: 0.6;
 
+        // color: var(--text-primary);
         &.active {
             opacity: 1;
             transform: scale(1.08);
-            color: var(--primary-color);
+            color: var(--text-primary);
             font-weight: 500;
         }
 

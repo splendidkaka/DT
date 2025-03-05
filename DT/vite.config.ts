@@ -18,7 +18,5 @@ export default defineConfig({
         additionalData: `@use "@/styles/_variables.scss" as *;`
       }
     },
-    // postcss: {
-    // }
   }
 })

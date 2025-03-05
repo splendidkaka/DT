@@ -255,81 +255,8 @@ const jayAlbums = [
         description: '诗意浪漫的夏日专辑，亚洲销量突破300万张'
     }
 ]
-// 艺人数据
-export const mockArtists: Artist[] = [
-    {
-        id: 'dt',
-        name: '陶喆',
-        avatar: new URL('@/assets/artists/david-tao.jpg', import.meta.url).href,
-        description: '华语R&B音乐教父',
-        albums: ['album-1', 'album-2', 'album-3', 'album-4', 'album-5']
-    },
-    // 其他艺人数据...
-    {
-        id: 'jay',
-        name: '周杰伦',
-        avatar: new URL('@/assets/artists/jay-chou.jpg', import.meta.url).href,
-        description: '中国流行音乐天王',
-        albums: ['jay-1', 'jay-2', 'jay-3', 'jay-4', 'jay-5'] // 示例专辑ID，需替换为真实专辑ID
-    }
-]
 
-// 专辑数据
-export const mockAlbums: Album[] = [
-    {
-        id: 'album-1',
-        title: 'David Tao',
-        artistId: 'dt',
-        releaseYear: 1997,
-        cover: davidTaoCover,
-        songs: [
-            'song-1', 'song-2', 'song-3', 'song-4', 'song-5',
-            'song-6', 'song-7', 'song-8', 'song-9', 'song-10'
-        ],
-        description: '陶喆首张同名专辑'
-    },
-    {
-        id: 'album-2',
-        title: 'I\'m OK',
-        artistId: 'dt',
-        releaseYear: 1999,
-        cover: imokCover,
-        songs: Array.from({ length: 20 - 11 + 1 }, (_, index) => `song-${11 + index}`),
-        description: '陶喆第二张专辑'
-    },
-    {
-        id: 'album-3',
-        title: '黑色柳丁',
-        artistId: 'dt',
-        releaseYear: 2002,
-        cover: blackTangerineCover,
-        songs: Array.from({ length: 26 - 21 + 1 }, (_, index) => `song-${21 + index}`), // 示例歌曲ID
-        description: '陶喆第三张专辑'
-    },
-    {
-        id: 'album-4',
-        title: 'Soul Power Live',
-        artistId: 'dt',
-        releaseYear: 2003,
-        cover: soulpowerCover,
-        songs: ['song-16', 'song-17'], // 示例歌曲ID
-        description: '陶喆演唱会现场专辑'
-    },
-    {
-        id: 'album-5',
-        title: '太平盛世',
-        artistId: 'dt',
-        releaseYear: 2005,
-        cover: taipingCover,
-        songs: ['song-18', 'song-19'], // 示例歌曲ID
-        description: '陶喆第五张专辑'
-    },
-    ...jayAlbums
-]
-
-// 歌曲数据
-export const mockSongs: Song[] = [
-    // David Tao (1997)
+const dtSongs = [ // David Tao (1997)
     {
         id: 'song-1',
         title: '飞机场的10:30',
@@ -346,7 +273,7 @@ export const mockSongs: Song[] = [
         audioUrl: preAudio('2.mp3'),
         albumId: 'album-1',
         artists: ['dt'],
-        lyrics: preLrc('1.lrc')
+        lyrics: preLrc('2.lrc')
     },
     {
         id: 'song-3',
@@ -388,10 +315,10 @@ export const mockSongs: Song[] = [
         id: 'song-7',
         title: '是是非非',
         duration: 245,
-        audioUrl: '/audio/david-tao/right-and-wrong.mp3',
+        audioUrl: preAudio('ssff.mp3'),
         albumId: 'album-1',
         artists: ['dt'],
-        lyrics: preLrc('david-tao/right-and-wrong.lrc')
+        lyrics: preLrc('ssff.lrc')
     },
     {
         id: 'song-8',
@@ -569,7 +496,89 @@ export const mockSongs: Song[] = [
         albumId: 'album-3',
         artists: ['dt'],
         lyrics: preLrc('black-tangerine/red-chamber.lrc')
+    }]
+const dtAlbums = [
+    {
+        id: 'album-1',
+        title: 'David Tao',
+        artistId: 'dt',
+        releaseYear: 1997,
+        cover: davidTaoCover,
+        songs: [
+            'song-1', 'song-2', 'song-3', 'song-4', 'song-5',
+            'song-6', 'song-7', 'song-8', 'song-9', 'song-10'
+        ],
+        description: '陶喆首张同名专辑'
     },
+    {
+        id: 'album-2',
+        title: 'I\'m OK',
+        artistId: 'dt',
+        releaseYear: 1999,
+        cover: imokCover,
+        songs: Array.from({ length: 20 - 11 + 1 }, (_, index) => `song-${11 + index}`),
+        description: '陶喆第二张专辑'
+    },
+    {
+        id: 'album-3',
+        title: '黑色柳丁',
+        artistId: 'dt',
+        releaseYear: 2002,
+        cover: blackTangerineCover,
+        songs: Array.from({ length: 26 - 21 + 1 }, (_, index) => `song-${21 + index}`), // 示例歌曲ID
+        description: '陶喆第三张专辑'
+    },
+    {
+        id: 'album-4',
+        title: 'Soul Power Live',
+        artistId: 'dt',
+        releaseYear: 2003,
+        cover: soulpowerCover,
+        songs: ['song-16', 'song-17'], // 示例歌曲ID
+        description: '陶喆演唱会现场专辑'
+    },
+    {
+        id: 'album-5',
+        title: '太平盛世',
+        artistId: 'dt',
+        releaseYear: 2005,
+        cover: taipingCover,
+        songs: ['song-18', 'song-19'], // 示例歌曲ID
+        description: '陶喆第五张专辑'
+    }
+]
+
+// const FangSongs=[]
+
+
+// 艺人数据
+export const mockArtists: Artist[] = [
+    {
+        id: 'dt',
+        name: '陶喆',
+        avatar: new URL('@/assets/artists/david-tao.jpg', import.meta.url).href,
+        description: '华语R&B音乐教父',
+        albums: ['album-1', 'album-2', 'album-3', 'album-4', 'album-5']
+    },
+    // 其他艺人数据...
+    {
+        id: 'jay',
+        name: '周杰伦',
+        avatar: new URL('@/assets/artists/jay-chou.jpg', import.meta.url).href,
+        description: '中国流行音乐天王',
+        albums: ['jay-1', 'jay-2', 'jay-3', 'jay-4', 'jay-5'] // 示例专辑ID，需替换为真实专辑ID
+    }
+]
+
+// 专辑数据
+export const mockAlbums: Album[] = [
+    ...dtAlbums,
+    ...jayAlbums
+]
+
+// 歌曲数据
+export const mockSongs: Song[] = [
+    ...dtSongs,
     ...jaySongs
 ]
 

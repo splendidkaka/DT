@@ -5,6 +5,15 @@ type Theme = {
     colors: Record<string, string>
 }
 
+const mini = {
+    '--mini-bg': '#ffffff',
+    '--mini-text': '#212121',
+    '--mini-progress-bg': '#e0e0e0',
+    '--mini-progress-active': '#2196f3',
+    '--mini-controls-color': '#757575',
+    '--mini-controls-hover': '#2196f3'
+}
+
 export const useThemeStore = defineStore('theme', {
     state: () => ({
         currentTheme: 'light',
@@ -25,7 +34,9 @@ export const useThemeStore = defineStore('theme', {
                     '--bg-primary': '#ffffff',
                     '--bg-secondary': '#f5f5f5',
                     '--text-primary': '#212121',
-                    '--text-secondary': '#757575'
+                    '--text-secondary': '#757575',
+                    '--item-hover-bg': '#f0f0f0',
+                    ...mini
                 }
             },
             dark: {
@@ -36,7 +47,9 @@ export const useThemeStore = defineStore('theme', {
                     '--bg-primary': '#121212',
                     '--bg-secondary': '#1e1e1e',
                     '--text-primary': '#e0e0e0',
-                    '--text-secondary': '#9e9e9e'
+                    '--text-secondary': '#9e9e9e',
+                    '--item-hover-bg': '#2a2a2a',
+                    ...mini
                 }
             },
             ocean: {
@@ -47,7 +60,9 @@ export const useThemeStore = defineStore('theme', {
                     '--bg-primary': '#e0f7fa',
                     '--bg-secondary': '#b2ebf2',
                     '--text-primary': '#006064',
-                    '--text-secondary': '#00838f'
+                    '--text-secondary': '#00838f',
+                    '--item-hover-bg': '#b3e5fc',
+                    ...mini
                 }
             },
             // 新增主题
@@ -59,7 +74,8 @@ export const useThemeStore = defineStore('theme', {
                     '--bg-primary': '#f1f8e9',
                     '--bg-secondary': '#dcedc8',
                     '--text-primary': '#33691e',
-                    '--text-secondary': '#689f38'
+                    '--text-secondary': '#689f38',
+                    '--item-hover-bg': '#c8e6c9'
                 }
             },
             vintage: {
@@ -70,7 +86,8 @@ export const useThemeStore = defineStore('theme', {
                     '--bg-primary': '#fff3e0',
                     '--bg-secondary': '#ffe0b2',
                     '--text-primary': '#5d4037',
-                    '--text-secondary': '#8d6e63'
+                    '--text-secondary': '#8d6e63',
+                    '--item-hover-bg': '#ffecb3'
                 }
             },
             midnight: {
@@ -81,7 +98,9 @@ export const useThemeStore = defineStore('theme', {
                     '--bg-primary': '#0a1929',
                     '--bg-secondary': '#17212f',
                     '--text-primary': '#e0e0e0',
-                    '--text-secondary': '#90a4ae'
+                    '--text-secondary': '#90a4ae',
+                    '--item-hover-bg': '#1a237e',
+                    ...mini
                 }
             }
         } as Record<string, Theme>

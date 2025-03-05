@@ -1,10 +1,10 @@
 <!-- components/PlayerControls.vue -->
 <template>
-    <div class="player-controls" :class="{ 'mobile-layout': isMobile }" v-if="currentSong" >
+    <div class="player-controls" :class="{ 'mobile-layout': isMobile }" v-if="currentSong">
         <div class="player-content">
             <!-- 左侧：歌曲信息 -->
             <div class="song-info">
-                <img :src="albumCover" class="album-cover" @click="handleClick" />
+                <img :src="albumCover" class="album-cover" :class="isPlaying? 'rotate': ''" @click="handleClick" />
                 <div class="text-info">
                     <div class="title">{{ currentSong.title }}</div>
                     <div class="artist">{{ artistNames }}</div>
@@ -13,11 +13,11 @@
 
             <!-- 中间：播放控制 -->
             <div class="controls">
-                <button class="control-btn" @click="musicStore.prevTrack">
+                <!-- <button class="control-btn" @click="musicStore.prevTrack">
                     <svg viewBox="0 0 24 24">
                         <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
                     </svg>
-                </button>
+                </button> -->
 
                 <button class="control-btn play-btn" @click="togglePlay">
                     <svg v-if="!isPlaying" viewBox="0 0 24 24">
@@ -28,11 +28,11 @@
                     </svg>
                 </button>
 
-                <button class="control-btn" @click="musicStore.nextTrack">
+                <!-- <button class="control-btn" @click="musicStore.nextTrack">
                     <svg viewBox="0 0 24 24">
                         <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
                     </svg>
-                </button>
+                </button> -->
             </div>
 
             <!-- 右侧：进度条和时间 -->
@@ -97,11 +97,23 @@ const formattedDuration = computed(() =>
 // 音频控制
 watch(currentSong, (newSong) => {
     if (!newSong) return
+    if (audioElement.value) {
+        cleanupAudio()
+    }
 
-    cleanupAudio()
     console.log('newSong:', newSong)
     initAudio(newSong.audioUrl)
 })
+
+
+// watch(isPlaying, (newVal) => {
+//     if(newVal) {
+//         audioElement.value?.play()
+//     } else {
+//         audioElement.value?.pause()
+//     }
+//     // togglePlay()
+// }, { immediate: true })
 
 const initAudio = (url: string) => {
     audioElement.value = new Audio(url)
@@ -123,6 +135,7 @@ const cleanupAudio = () => {
         audioElement.value.removeEventListener('timeupdate', updateProgress)
         audioElement.value = null
     }
+
 }
 
 // 播放控制
@@ -162,6 +175,14 @@ const formatTime = (seconds: number) => {
     const remaining = Math.floor(seconds % 60)
     return `${minutes}:${remaining.toString().padStart(2, '0')}`
 }
+onMounted(() => {
+    if (isPlaying.value) {
+        musicStore.togglePlayback()
+    }
+    if (currentSong.value) {
+        initAudio(currentSong.value.audioUrl)
+    }
+})
 
 // 生命周期清理
 onUnmounted(cleanupAudio)
@@ -174,6 +195,7 @@ onUnmounted(cleanupAudio)
     left: 0;
     right: 0;
     background: rgba(255, 255, 255, 0.97);
+    // background-color: var(--mini-bg);
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
     padding: 1rem 2rem;
     z-index: 100;
@@ -183,21 +205,55 @@ onUnmounted(cleanupAudio)
 
     &.mobile-layout {
         padding: 0.5rem;
-        display: flex;
+        // display: flex;
 
         .player-content {
-            // flex-direction: column;
-            // display: flex;
-            flex-direction: row;
+            min-width: 0;
+            display: flex;
             // justify-content: space-between;
-            // gap: 1rem;
+            .song-info {
+                max-width: 200px;
+                flex: 0 1 200px;
+                max-width: 200px;
+                min-width: 0; // 允许内容压缩
+                display: flex;
+                align-items: center;
+                overflow: hidden;
 
+                .text-info {
+                    flex: 1;
+                    min-width: 100px; // 关键修复
+                    overflow: hidden;
+                    width: 100%;
+                    max-width: 100%;
+
+                    .title {
+                        font-weight: 500;
+                        font-size: 1.1rem;
+                        // color: var(--mini-text);
+                        color: var(--text-primary);
+                        max-width: calc(100% - 1rem);
+                        // 文本截断
+                        display: block;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    .artist {
+                        font-size: 0.9rem;
+                        color: #666;
+                    }
+                }
+            }
+
+            .controls {
+                flex-basis: auto;
+                width: auto;
+            }
         }
 
-        .controls {
-            // order: -1;
-            justify-content: center;
-        }
+
 
         .progress-container {
             width: 100%;
@@ -245,74 +301,93 @@ onUnmounted(cleanupAudio)
         display: flex;
         align-items: center;
         gap: 2rem;
-    }
+        min-width: 0;
+        overflow: hidden;
 
-    .song-info {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        // min-width: 250px;
+        .song-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-grow: 0;
 
-        .album-cover {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-            cursor: pointer;
-            animation: rotate 5s linear infinite;
+            flex: 0 1 200px; // 改为允许收缩
+            max-width: 200px;
+            min-width: 0;
+
+            .album-cover {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                object-fit: cover;
+                cursor: pointer;
+                // animation: rotate 5s linear infinite;
+                &.rotate{
+                    animation: rotate 5s linear infinite;
+                }
+            }
+
+            .text-info {
+                // max-width: 130px;
+
+                .title {
+                    font-weight: 500;
+                    font-size: 1.1rem;
+                    color: var(--mini-text);
+                    display: inline-block; // 或 block
+                    max-width: 100%; // 继承容器宽度
+                    white-space: nowrap; // 禁止换行
+                    overflow: hidden; // 隐藏溢出内容
+                    text-overflow: ellipsis; // 显示省略号
+                }
+
+                .artist {
+                    font-size: 0.9rem;
+                    color: #666;
+                }
+            }
         }
 
-        .text-info {
-            .title {
-                font-weight: 500;
-                font-size: 1.1rem;
-                color: #000000;
-            }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-shrink: 0;
 
-            .artist {
-                font-size: 0.9rem;
-                color: #666;
-            }
-        }
-    }
-
-    .controls {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-
-        .control-btn {
-            background: none;
-            border: none;
-            padding: 0.5rem;
-            cursor: pointer;
-            border-radius: 50%;
-            transition: all 0.2s;
-
-            svg {
-                width: 24px;
-                height: 24px;
-                fill: #333;
-            }
-
-            &:hover {
-                background: rgba(0, 0, 0, 0.05);
-            }
-
-            &.play-btn {
-                background: #000;
-                padding: 0.8rem;
+            .control-btn {
+                background: none;
+                border: none;
+                padding: 0.5rem;
+                cursor: pointer;
+                border-radius: 50%;
+                transition: all 0.2s;
 
                 svg {
-                    fill: #fff;
+                    width: 24px;
+                    height: 24px;
+                    fill: #333;
                 }
 
                 &:hover {
-                    transform: scale(1.05);
+                    background: rgba(0, 0, 0, 0.05);
+                }
+
+                &.play-btn {
+                    background: #000;
+                    padding: 0.8rem;
+
+                    svg {
+                        fill: #fff;
+                    }
+
+                    &:hover {
+                        transform: scale(1.05);
+                    }
                 }
             }
         }
     }
+
+
 
     .progress-container {
         flex: 1;

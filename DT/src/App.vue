@@ -39,11 +39,11 @@ const currentLyricIndex = computed(() => musicStore.currentLyricIndex)
     <el-header>
       <NavBar />
     </el-header>
-    <el-main>
+    <el-main id="my-el-main">
       <RouterView />
     </el-main>
     <el-footer>
-      <PlayerControls/>
+      <PlayerControls />
       <!-- 歌词组件 -->
       <LyricsPanel v-model:visible="musicStore.showLyricsPanel" :title="currentSong?.title || ''" />
       <PlaylistPanel />
@@ -93,4 +93,19 @@ const currentLyricIndex = computed(() => musicStore.currentLyricIndex)
     }
   }
 }
+
+.el-header {
+  padding: 0 !important;
+  /* 清除默认内边距 */
+  background: transparent !important;
+  /* 清除背景色 */
+  height: auto !important;
+  /* 取消固定高度 */
+  line-height: normal !important;
+  box-shadow: none !important;
+}
+
+// #my-el-main{
+//   order: -1;
+// }
 </style>
