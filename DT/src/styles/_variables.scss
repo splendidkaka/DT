@@ -6,6 +6,12 @@ $secondary-color: #1b263b; // 夜间蓝
 $accent-color: #2196f3;
 $golden-tinge: #d4a017; // 金色点缀
 $light-grey: #f1faee; // 浅灰色背景
+
+$primary-color: #2196F3;
+$success-color: #4CAF50;
+$success-color-rgb: 76, 175, 80;
+$danger-color: #FF5252;
+$danger-color-rgb: 255, 82, 82;
 //蓝专题色系
 // 颜色系统    
 $background-dark: #1a1a1a;
@@ -43,7 +49,9 @@ $border-color: #d8e3e7;
         --text-primary: #212121;
         --text-secondary: #757575;
 }
+
 $mobile-breakpoint: 768px;
+
 /* 基础字号系统 */
 :root {
         // PC端字号

@@ -1,5 +1,6 @@
 // mock/api/mockData.ts
 import type { Artist, Album, Song, Playlist } from '@/types/music'
+import { id } from 'element-plus/es/locale/index.mjs'
 
 // 图片资源路径
 const davidTaoCover = new URL('@/assets/covers/david-tao.jpg', import.meta.url).href
@@ -482,11 +483,11 @@ const dtSongs = [ // David Tao (1997)
     {
         id: 'song-25',
         title: 'Melody',
-        duration: 245,
-        audioUrl: '/audio/black-tangerine/angel.mp3',
+        duration: 270,
+        audioUrl: '/audio/black-tangerine/Melody.mp3',
         albumId: 'album-3',
         artists: ['dt'],
-        lyrics: preLrc('black-tangerine/melody.lrc')
+        lyrics: preLrc('black-tangerine/Melody.lrc')
     },
     {
         id: 'song-26',
@@ -496,7 +497,17 @@ const dtSongs = [ // David Tao (1997)
         albumId: 'album-3',
         artists: ['dt'],
         lyrics: preLrc('black-tangerine/red-chamber.lrc')
-    }]
+    },
+    {
+        id: 'song-27',
+        title: '爱我还是他',
+        duration: 292,
+        audioUrl: '/audio/peach-blossom/love-me-or-him.mp3',
+        albumId: 'album-5',
+        artists: ['dt'],
+        lyrics: preLrc('peach-blossom/love-me-or-him.lrc')
+    }
+]
 const dtAlbums = [
     {
         id: 'album-1',
@@ -543,7 +554,7 @@ const dtAlbums = [
         artistId: 'dt',
         releaseYear: 2005,
         cover: taipingCover,
-        songs: ['song-18', 'song-19'], // 示例歌曲ID
+        songs: ['song-27'], // 示例歌曲ID
         description: '陶喆第五张专辑'
     }
 ]

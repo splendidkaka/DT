@@ -36,6 +36,7 @@ const dragState = ref({
     currentY: 0
 })
 
+
 // 新增面板位置状态
 const panelPosition = ref({
     direction: 'right',

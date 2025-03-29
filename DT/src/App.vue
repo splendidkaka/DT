@@ -3,6 +3,20 @@ import { RouterView } from 'vue-router'
 import PlayerControls from '@/components/PlayerControls.vue'
 import NavBar from '@/components/NavBar.vue'
 import { useMusicStore } from '@/store/modules/music'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+// const isAichatRoute = computed(() => {
+//   return route.path.startsWith('/AiChat') // 或使用 route.name === 'aichat'
+// })
+
+const isHomeRoute = computed(() => {
+  return route.path.startsWith('/home') // 或使用 route.name === 'aichat'
+})
+
+const isIndexRoute = computed(() => {
+  return route.name==='index' // 或使用 route.name === 'aichat'
+})
 
 const musicStore = useMusicStore()
 // 获取所需数据
@@ -35,16 +49,15 @@ const currentLyricIndex = computed(() => musicStore.currentLyricIndex)
     </div>
   </div> -->
 
-  <el-container>
-    <el-header>
+  <el-container class="main-container">
+    <el-header v-if="!isIndexRoute">
       <NavBar />
     </el-header>
-    <el-main id="my-el-main">
+    <el-main id="my-el-main" :class="{ 'full-height': $route.path === '/aichat' }">
       <RouterView />
     </el-main>
-    <el-footer>
+    <el-footer v-if="isHomeRoute">
       <PlayerControls />
-      <!-- 歌词组件 -->
       <LyricsPanel v-model:visible="musicStore.showLyricsPanel" :title="currentSong?.title || ''" />
       <PlaylistPanel />
     </el-footer>
@@ -94,6 +107,13 @@ const currentLyricIndex = computed(() => musicStore.currentLyricIndex)
   }
 }
 
+.main-container{
+  height: 100vh;
+  .el-main.full-height {
+    // height: calc(100vh - var(--el-header-height)) !important;
+  }
+}
+
 .el-header {
   padding: 0 !important;
   /* 清除默认内边距 */
@@ -105,7 +125,9 @@ const currentLyricIndex = computed(() => musicStore.currentLyricIndex)
   box-shadow: none !important;
 }
 
-// #my-el-main{
-//   order: -1;
-// }
+#my-el-main{
+  padding: 0;
+  min-height: 0;
+  overflow: auto;
+}
 </style>

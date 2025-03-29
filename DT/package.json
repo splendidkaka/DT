@@ -11,12 +11,23 @@
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
     "@iconify/vue": "^4.3.0",
+    "@types/gsap": "^3.0.0",
     "@types/howler": "^2.2.12",
+    "@types/markdown-it": "^14.1.2",
     "@vueuse/core": "^12.7.0",
     "autoprefixer": "^10.4.20",
+    "axios": "^1.8.4",
+    "dompurify": "^3.2.4",
+    "echarts": "^5.6.0",
     "element-plus": "^2.9.5",
+    "gsap": "^3.12.7",
+    "highlight.js": "^11.11.1",
     "howler": "^2.2.4",
     "lodash": "^4.17.21",
+    "markdown-it": "^14.1.0",
+    "marked": "^15.0.7",
+    "md-editor-v3": "^5.4.4",
+    "mitt": "^3.0.1",
     "mock": "^0.1.1",
     "pinia": "^3.0.1",
     "pinia-plugin-persistedstate": "^4.2.0",
@@ -26,8 +37,12 @@
     "scss": "^0.2.4",
     "unplugin-auto-import": "^19.1.1",
     "unplugin-vue-components": "^28.4.1",
+    "uuid": "^11.1.0",
     "vue": "^3.5.13",
-    "vue-router": "4"
+    "vue-element-plus-x": "^1.0.6",
+    "vue-router": "4",
+    "vue-virtual-scroller": "^1.1.2",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
@@ -40,6 +55,7 @@
     "typescript": "~5.7.2",
     "vite": "^6.2.0",
     "vite-plugin-remove-console": "^2.2.0",
+    "vue-macros": "^3.0.0-beta.7",
     "vue-tsc": "^2.2.4"
   }
 }

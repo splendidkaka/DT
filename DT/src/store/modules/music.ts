@@ -15,6 +15,7 @@ interface MusicState {
     playlists: Record<string, Playlist>
     currentPlayer: {
         queue: string[]
+        songList: string[]
         currentIndex: number
         isPlaying: boolean
         progress: number
@@ -26,6 +27,8 @@ interface MusicState {
     showLyricsPanel: boolean // 歌词面板显示状态
     showTranslation: boolean // 是否显示翻译
     lyricOffset: number // 歌词面板滑动偏移量
+    audioElement: HTMLAudioElement | null
+    favoriteSongs: string[]
 }
 
 export const useMusicStore = defineStore('music', {
@@ -36,6 +39,7 @@ export const useMusicStore = defineStore('music', {
         playlists: {},
         currentPlayer: {
             queue: [],
+            songList: [],
             currentIndex: -1,
             isPlaying: false,
             progress: 0,
@@ -46,7 +50,9 @@ export const useMusicStore = defineStore('music', {
         currentLyricIndex: -1,
         showLyricsPanel: false,
         showTranslation: false,
-        lyricOffset: 0
+        lyricOffset: 0,
+        audioElement: null,
+        favoriteSongs: []
     }),
 
     getters: {
@@ -80,6 +86,10 @@ export const useMusicStore = defineStore('music', {
             console.log('currentSong', this.songs[state.currentPlayer.queue[state.currentPlayer.currentIndex]] || null)
             return this.songs[state.currentPlayer.queue[state.currentPlayer.currentIndex]] || null
         },
+        // 获取当前播放列表
+        currentQueue(state): Song[] {
+            return state.currentPlayer.queue.map(id => this.songs[id])
+        },
         // 获取当前播放进度百分比
         progressPercent(state): number {
             return (state.currentPlayer.progress / state.currentPlayer.duration) * 100 || 0
@@ -107,6 +117,9 @@ export const useMusicStore = defineStore('music', {
         // 是否包含歌词
         hasLyrics: (state) => {
             return state.lyrics.length > 0
+        },
+        isFavoriteSong: (state) => (songId: string) => {
+            return state.favoriteSongs.includes(songId)
         }
     },
 
@@ -156,6 +169,22 @@ export const useMusicStore = defineStore('music', {
                 this.currentPlayer.isPlaying = true
             }
         },
+        addToQueue(songId: string) {
+
+            //需要额外去重
+            if (this.currentPlayer.queue.includes(songId)) {
+                return
+            }
+            if (this.currentPlayer.currentIndex === -1) {
+                this.currentPlayer.queue = [songId]
+                this.currentPlayer.currentIndex = 0
+            } else {
+                // 插入到当前播放歌曲的下一个位置
+                // this.currentPlayer.queue.splice(this.currentPlayer.currentIndex + 1, 0, songId)
+                // 插入到末尾
+                this.currentPlayer.queue.push(songId)
+            }
+        },
         // 新增：播放单曲
         playSong(songId: string) {
             console.log('playSong', songId)
@@ -164,7 +193,29 @@ export const useMusicStore = defineStore('music', {
             this.currentPlayer.isPlaying = true
             this.currentPlayer.progress = 0
         },
+        // 通过歌曲id获得歌名
+        getSongName(songId: string) {
+            return this.songs[songId].title || ''
+        },
+        //通过歌曲id获得歌手id 再通过artistId获得歌手名
+        getSongArtist(songId: string) {
+            const artistId = this.songs[songId].artists[0]
+            return this.artists[artistId].name || ''
+        },
+        //通过id获得歌曲duration
+        getSongDuration(songId: string) {
+            return this.songs[songId].duration || 0
+        },
+        // 通过歌曲id先得到albumId 再得到album的cover
+        getSongCover(songId: string) {
+            const albumId = this.songs[songId].albumId
+            return this.albums[albumId].cover || ''
+        },
 
+        //判断当前歌曲是否在播放列表中
+        isSongInQueue(songId: string) {
+            return this.currentPlayer.queue.includes(songId)
+        },
         // 新增：播放指定歌曲队列
         playQueue(songIds: string[], index = 0) {
             this.currentPlayer.queue = songIds
@@ -214,6 +265,23 @@ export const useMusicStore = defineStore('music', {
             this.currentPlayer.queue.splice(index, 1)
             if (this.currentPlayer.currentIndex >= this.currentPlayer.queue.length) {
                 this.currentPlayer.currentIndex = Math.max(this.currentPlayer.queue.length - 1, 0)
+            }
+        },
+
+        //根据歌曲id从列表中删除歌曲
+        removeSong(songId: string) {
+            const index = this.currentPlayer.queue.indexOf(songId)
+            if (index > -1) {
+                this.removeFromQueue(index)
+            }
+        },
+
+        //新增收藏歌曲
+        toggleFavoriteSong(songId: string) {
+            if (this.favoriteSongs.includes(songId)) {
+                this.favoriteSongs = this.favoriteSongs.filter(id => id !== songId)
+            } else {
+                this.favoriteSongs.push(songId)
             }
         },
 

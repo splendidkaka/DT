@@ -10,9 +10,9 @@ const musicStore = useMusicStore()
 
 // 导航链接数据
 const navLinks = [
-  { name: '发现音乐', path: '/', icon: '🎵' },
-  { name: '热门专辑', path: '/albums', icon: '🎧' },
-  { name: '排行榜', path: '/charts', icon: '🏆' }
+  { name: '发现音乐', path: '/home', icon: '🎵' },
+  { name: '热门专辑', path: '/AiChat', icon: '🎧' },
+  { name: '排行榜', path: '/video', icon: '🏆' }
 ]
 
 // 艺术家数据
@@ -30,7 +30,7 @@ onMounted(() => {
 
 // 关闭下拉的点击外部检测
 const closeDropdown = (e: MouseEvent) => {
-  console.log('e.target:', e.target)
+  // console.log('e.target:', e.target)
   if (!(e.target as HTMLElement).closest('.artist-dropdown')) {
     isDropdownOpen.value = false
   }

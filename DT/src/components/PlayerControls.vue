@@ -4,7 +4,7 @@
         <div class="player-content">
             <!-- 左侧：歌曲信息 -->
             <div class="song-info">
-                <img :src="albumCover" class="album-cover" :class="isPlaying? 'rotate': ''" @click="handleClick" />
+                <img :src="albumCover" class="album-cover" :class="isPlaying ? 'rotate' : ''" @click="handleClick" />
                 <div class="text-info">
                     <div class="title">{{ currentSong.title }}</div>
                     <div class="artist">{{ artistNames }}</div>
@@ -13,11 +13,14 @@
 
             <!-- 中间：播放控制 -->
             <div class="controls">
-                <!-- <button class="control-btn" @click="musicStore.prevTrack">
+                <!-- <button class="mobile-btn" @click="togglePlaylist" v-if="isMobile">
+                    <SvgIcon icon="mdi:playlist-music" :size="20" class="icon" />
+                </button> -->
+                <button class="control-btn" @click="musicStore.prevTrack">
                     <svg viewBox="0 0 24 24">
                         <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
                     </svg>
-                </button> -->
+                </button>
 
                 <button class="control-btn play-btn" @click="togglePlay">
                     <svg v-if="!isPlaying" viewBox="0 0 24 24">
@@ -28,11 +31,11 @@
                     </svg>
                 </button>
 
-                <!-- <button class="control-btn" @click="musicStore.nextTrack">
+                <button class="control-btn" @click="musicStore.nextTrack">
                     <svg viewBox="0 0 24 24">
                         <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
                     </svg>
-                </button> -->
+                </button>
             </div>
 
             <!-- 右侧：进度条和时间 -->
@@ -56,12 +59,13 @@ import { computed, ref, watch } from 'vue'
 import { useMusicStore } from '@/store/modules/music'
 import { useSidebarStore } from '@/store/modules/sidebar'
 import { useDevice } from '@/hooks/useDevice'
-
+import { emitter } from '@/utils/eventBus'
 const sidebarStore = useSidebarStore()
 
 
 const togglePlaylist = () => {
     sidebarStore.togglePlaylistVisibility()
+    // window.addEventListener('click', closePanel)
 }
 const musicStore = useMusicStore()
 const audioElement = ref<HTMLAudioElement | null>(null)
@@ -168,6 +172,7 @@ const handleClick = (e: MouseEvent) => {
     musicStore.toggleLyricsPanel(true)
 }
 
+
 // 工具函数
 const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return '00:00'
@@ -175,7 +180,19 @@ const formatTime = (seconds: number) => {
     const remaining = Math.floor(seconds % 60)
     return `${minutes}:${remaining.toString().padStart(2, '0')}`
 }
+// 监听播放进度
+
 onMounted(() => {
+    emitter.on('seekToTime', (time: number) => {
+        if (audioElement.value) {
+            audioElement.value.currentTime = time
+            musicStore.updateProgress(time)
+        }
+    })
+
+    emitter.on('togglePlay', (flag: Boolean) => {
+        togglePlay()
+    })
     if (isPlaying.value) {
         musicStore.togglePlayback()
     }
@@ -184,8 +201,14 @@ onMounted(() => {
     }
 })
 
+// 关闭下拉的点击外部检测
+
+
 // 生命周期清理
-onUnmounted(cleanupAudio)
+onUnmounted(() => {
+    emitter.off('seekToTime')
+    cleanupAudio()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -210,6 +233,7 @@ onUnmounted(cleanupAudio)
         .player-content {
             min-width: 0;
             display: flex;
+
             // justify-content: space-between;
             .song-info {
                 max-width: 200px;
@@ -320,8 +344,9 @@ onUnmounted(cleanupAudio)
                 border-radius: 50%;
                 object-fit: cover;
                 cursor: pointer;
+
                 // animation: rotate 5s linear infinite;
-                &.rotate{
+                &.rotate {
                     animation: rotate 5s linear infinite;
                 }
             }
@@ -352,6 +377,38 @@ onUnmounted(cleanupAudio)
             align-items: center;
             gap: 1rem;
             flex-shrink: 0;
+
+            .mobile-btn {
+                // position: fixed;
+                right: 20px;
+                bottom: 20px;
+                z-index: 1000;
+                background: rgba(255, 255, 255, 0.9);
+                border: none;
+                border-radius: 50%;
+                width: 48px;
+                height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                cursor: pointer;
+                transition: all 0.3s ease;
+
+                &:hover {
+                    transform: scale(1.1);
+                    background: $accent-color;
+
+                    .icon {
+                        color: white;
+                    }
+                }
+
+                .icon {
+                    color: $accent-color;
+                    transition: color 0.3s ease;
+                }
+            }
 
             .control-btn {
                 background: none;

@@ -6,18 +6,24 @@ const router = createRouter({
     routes: [
         {
             path: '/',
+            name: 'index',
+            component: () => import('@/views/Index.vue')
+        },
+
+        {
+            path: '/home',
             name: 'home',
             component: () => import('@/views/HomeView.vue')
         },
         {
-            path: '/playlist/:id',
-            name: 'playlist',
-            component: () => import('@/views/PlaylistView.vue')
+            path: '/AiChat',
+            name: 'AiChat',
+            component: () => import('@/views/AiChat.vue')
         },
         {
-            path: '/artist',
-            name: 'artist',
-            component: () => import('@/views/ArtistView.vue')
+            path: '/video',
+            name: 'video',
+            component: () => import('@/views/video.vue')
         }
     ]
 })
